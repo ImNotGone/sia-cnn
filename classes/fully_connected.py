@@ -1,7 +1,7 @@
 from numpy import ndarray
 import numpy as np
 
-class MLP():
+class FullyConnected():
 
     # TODO: configurar la funcion de activacion
     def sigmoid(self, input: ndarray):
