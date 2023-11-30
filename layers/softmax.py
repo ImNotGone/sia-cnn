@@ -2,7 +2,7 @@ from numpy import ndarray
 import numpy as np
 
 from layers.layer import Layer
-from layers.optimization_methods import OptimizationMethod
+from layers.utils.optimization_methods import OptimizationMethod
 
 
 class SM(Layer):

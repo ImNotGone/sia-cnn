@@ -1,8 +1,8 @@
 from numpy import ndarray
 import numpy as np
 
-from layers.activation_functions import ActivationFunction
-from layers.optimization_methods import OptimizationMethod
+from layers.utils.activation_functions import ActivationFunction
+from layers.utils.optimization_methods import OptimizationMethod
 from layers.layer import Layer
 
 
