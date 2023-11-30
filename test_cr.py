@@ -1,7 +1,7 @@
 from classes.cr import CR, Padding
 import numpy as np
 
-cr = CR(1, 3, Padding.Valid)
+cr = CR(1, 3, Padding.VALID)
 
 filter = [
     [-1, 0, 1], 
@@ -20,7 +20,7 @@ image = [
 ]
 
 # 1(filter) x 2 x 2
-expected = np.array([[[29, -192], [-35, -22]]])
+expected = np.array([[[29], [-192]], [[-35], [-22]]])
 actual = cr.foward_prop(np.array(image))
 print(f"image: {image}")
 print(f"expected: {expected}")
