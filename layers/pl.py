@@ -29,7 +29,7 @@ class PL():
                 image_region = input_image[i_start:i_end, j_start:j_end]
                 yield image_region, i, j
 
-    def foward_prop(self, input_image:ndarray):
+    def forward_prop(self, input_image:ndarray):
 
         # cache'd for easier back_prop
         self.last_input_image = input_image

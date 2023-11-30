@@ -1,7 +1,9 @@
 from numpy import ndarray
 import numpy as np
 
-class SM():
+from layers.layer import Layer
+
+class SM(Layer):
 
     def softmax(self, input: ndarray):
         return np.exp(input) / np.sum(np.exp(input))
@@ -17,7 +19,7 @@ class SM():
         self.weights = np.random.randn(input_size, output_size)
 
 
-    def foward_prop(self, input: ndarray):
+    def forward_prop(self, input: ndarray):
         self.input = input
 
         excitements = input @ self.weights

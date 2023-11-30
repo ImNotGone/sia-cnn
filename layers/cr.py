@@ -45,7 +45,7 @@ class CR:
                 image_region = input_image[i:(i+self.filter_size), j:(j+self.filter_size)]
                 yield image_region, i, j
 
-    def foward_prop(self, input_image: ndarray):
+    def forward_prop(self, input_image: ndarray):
         # aplies the qty_filters filters to the input image
 
         heigth, width = input_image.shape

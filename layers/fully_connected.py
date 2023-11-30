@@ -21,7 +21,7 @@ class FullyConnected():
 
         self.weights = np.random.randn(input_size, output_size)
 
-    def foward_prop(self, input: ndarray):
+    def forward_prop(self, input: ndarray):
         self.input = input
 
         excitements = input @ self.weights
