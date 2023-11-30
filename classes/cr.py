@@ -29,8 +29,9 @@ class CR:
         heigth, width = input_image.shape
         match(self.padding):
             case(Padding.VALID):
-                heigth -= (self.filter_size // 2)*2 # floored divition
-                width  -= (self.filter_size // 2)*2 # floored divition
+                # reduce size, for borders to fit
+                heigth -= (self.filter_size // 2)*2 # floored division
+                width  -= (self.filter_size // 2)*2 # floored division
             case(Padding.SAME):
                 raise "Unimplemented"
             case(Padding.FULL):
@@ -50,8 +51,9 @@ class CR:
         heigth, width = input_image.shape
         match(self.padding):
             case(Padding.VALID):
-                heigth -= (self.filter_size // 2)*2 # floored divition
-                width  -= (self.filter_size // 2)*2 # floored divition
+                # reduce size, for borders to fit
+                heigth -= (self.filter_size // 2)*2 # floored division
+                width  -= (self.filter_size // 2)*2 # floored division
                 print(heigth, width, self.filter_size, (self.filter_size // 2)*2)
                 print(self.filters)
             case(_):
@@ -63,7 +65,7 @@ class CR:
         output = np.zeros((heigth, width, self.qty_filters))
 
         for image_region, i, j in self.iterate_image_regions(input_image):
-            output[i, j] = np.sum(image_region * self.filters, axis=(1, 2))
+            output[i, j] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
     
         return output
 
