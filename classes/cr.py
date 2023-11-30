@@ -72,4 +72,24 @@ class CR:
         return output
 
     def back_prop(self, loss_gradient:ndarray, learn_rate:float):
+        #We cached the last input image while doing forward_prop to make back_prop easier
+        #We check that forward propagation was done before doing back propagation
+        if(self.last_input_image is None):
+            #TODO implement error
+            raise ForwardPropNotDoneError
+        
+
+        #We create the previous filters layer to reconstruct it with the same shape as the current filters
+        previous_filters = np.zeros(self.filters.shape)
+
+
+        #Now we reconstruct the filters, using the cached last input image
+        for image_region, i, j in self.iterate_image_regions(self.last_input_image):
+            for k in range(self.qty_filters):
+                previous_filters[k] +=  loss_gradient[i, j, k] * image_region
+        
+        #Now we update the current filters that we are on (going back to the previous set)
+        self.filters -= learn_rate * previous_filters
+        
+        #TODO reset last input image and return the derivation for the loos gradient of its inputs
         pass
