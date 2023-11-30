@@ -46,5 +46,5 @@ class PL():
 
         return output
 
-    def back_prop(self):
+    def back_prop(self, loss_gradient:ndarray, learning_rate:float):
         pass
