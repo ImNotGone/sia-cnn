@@ -1,7 +1,7 @@
-from classes.cr import CR
+from classes.cr import CR, Padding
 import numpy as np
 
-cr = CR(1, 3)
+cr = CR(1, 3, Padding.Valid)
 
 filter = [
     [-1, 0, 1], 
@@ -25,3 +25,5 @@ actual = cr.foward_prop(np.array(image))
 print(f"image: {image}")
 print(f"expected: {expected}")
 print(f"actual: {actual}")
+
+# TODO: propper assert
