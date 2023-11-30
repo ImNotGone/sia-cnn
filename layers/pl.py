@@ -15,8 +15,10 @@ class PoolingType(Enum):
 class PL(Layer):
     def __init__(self, pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
-
         self.pooling_func = pooling_type.value
+
+        # cache for back_prop
+        self.last_input_image = None
 
     def iterate_image_regions(self, input_image: ndarray):
 
@@ -69,7 +71,7 @@ class PL(Layer):
             for i_2 in range(height):
                 for j_2 in range(width):
                     for k_2 in range(k):
-                        # If pixel is MAX, MIN or AVG, copy the gradient to it.
+                        # If pixel is MAX, MIN or AVG, copy gradient to it.
                         if image_region[i_2, j_2, k_2] == pool_value[k_2]:
                             input[i * 2 + i_2, j * 2 + j_2, k_2] = loss_gradient[i, j, k_2]
 
