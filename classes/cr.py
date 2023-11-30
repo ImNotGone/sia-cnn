@@ -65,9 +65,11 @@ class CR:
         output = np.zeros((heigth, width, self.qty_filters))
 
         for image_region, i, j in self.iterate_image_regions(input_image):
+            # np.sum in this case
+            # compresses a list of matrices to a list of the sum of each matrix
             output[i, j] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
     
         return output
 
-    def back_prop(self, loss_gradient, learn_rate):
+    def back_prop(self, loss_gradient:ndarray, learn_rate:float):
         pass
