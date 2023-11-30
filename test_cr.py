@@ -1,4 +1,4 @@
-from classes.cr import CR, Padding
+from layers.cr import CR, Padding
 import numpy as np
 
 cr = CR(1, 3, Padding.VALID)

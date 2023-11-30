@@ -1,4 +1,4 @@
-from classes.pl import PL, PoolingType
+from layers.pl import PL, PoolingType
 import numpy as np
 
 # TEST MAX
