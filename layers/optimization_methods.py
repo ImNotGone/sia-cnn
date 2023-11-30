@@ -11,7 +11,7 @@ class OptimizationMethod(ABC):
         pass
 
     @abstractmethod
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray):
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         pass
 
 # ----- Gradient Descent -----
@@ -20,7 +20,7 @@ class GradientDescent(OptimizationMethod):
         super().__init__()
         self.learning_rate = learning_rate
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray):
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         return weights - self.learning_rate * gradient_weights
 
 # ----- Momentum -----
@@ -32,7 +32,7 @@ class Momentum(OptimizationMethod):
 
         self.previous_gradient = np.array([])
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray):
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         updated_weights = weights - self.learning_rate * gradient_weights + self.momentum * self.previous_gradient
         self.previous_gradient = gradient_weights
         return updated_weights
@@ -50,7 +50,7 @@ class Adam(OptimizationMethod):
         self.v = np.array([])
         self.t = 0
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray):
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         self.t += 1
 
         if self.m.size == 0:

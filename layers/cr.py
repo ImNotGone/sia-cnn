@@ -2,16 +2,21 @@ import numpy as np
 from enum import Enum
 from numpy import ndarray
 
+from layers.optimization_methods import OptimizationMethod
+from layers.layer import Layer
+
 class Padding(Enum):
     VALID = 0
     SAME  = 1
     FULL  = 2
 
 # Convolutional Relu
-class CR:
-    def __init__(self, qty__filters: int, filter_size: int, padding: Padding = Padding.VALID):
+class CR(Layer):
+    def __init__(self, qty__filters: int, filter_size: int, optimization_method: OptimizationMethod, padding: Padding = Padding.VALID):
         self.qty_filters = qty__filters
         self.filter_size = filter_size
+
+        self.optimization_method = optimization_method
         
         # cache for back_prop
         self.last_input_image = None
@@ -71,7 +76,7 @@ class CR:
     
         return output
 
-    def back_prop(self, loss_gradient:ndarray, learn_rate:float):
+    def back_prop(self, loss_gradient: ndarray):
         #We cached the last input image while doing forward_prop to make back_prop easier
         #We check that forward propagation was done before doing back propagation
         if(self.last_input_image is None):
@@ -88,8 +93,9 @@ class CR:
             for k in range(self.qty_filters):
                 previous_filters[k] +=  loss_gradient[i, j, k] * image_region
         
-        #Now we update the current filters that we are on (going back to the previous set)
-        self.filters -= learn_rate * previous_filters
+        # floatNow we update the current filters that we are on (going back to the previous set)
+        self.filters = self.optimization_method.get_updated_weights(self.filters, previous_filters)
+
         
         #TODO check reset last input image
         self.last_input_image=None

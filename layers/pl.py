@@ -2,12 +2,14 @@ from enum import Enum
 import numpy as np
 from numpy import ndarray
 
+from layers.layer import Layer
+
 class PoolingType(Enum):
     MAX = np.amax
     MIN = np.amin
     AVG = np.average
 
-class PL():
+class PL(Layer):
     def __init__(self, pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
 
@@ -46,7 +48,7 @@ class PL():
 
         return output
 
-    def back_prop(self, loss_gradient:ndarray, learning_rate:float):
+    def back_prop(self, loss_gradient: ndarray):
         #We cached the last input image while doing forward_prop to make back_prop easier
         #We check that forward propagation was done before doing back propagation
         if(self.last_input_image is None):
