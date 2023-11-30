@@ -2,6 +2,7 @@ from enum import Enum
 import numpy as np
 from numpy import ndarray
 
+from layers import ForwardPropNotDoneError
 from layers.layer import Layer
 
 

@@ -1,0 +1,2 @@
+class ForwardPropNotDoneError(Exception):
+    pass

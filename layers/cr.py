@@ -2,6 +2,7 @@ import numpy as np
 from enum import Enum
 from numpy import ndarray
 
+from layers import ForwardPropNotDoneError
 from layers.optimization_methods import OptimizationMethod
 from layers.layer import Layer
 
