@@ -1,18 +1,15 @@
 from numpy import ndarray
 import numpy as np
 
+from layers.activation_functions import ActivationFunction
+
 class FullyConnected():
 
-    # TODO: configurar la funcion de activacion
-    def sigmoid(self, input: ndarray):
-        return 1 / (1 + np.exp(-input))
-
-    def sigmoid_prime(self, input: ndarray):
-        return self.sigmoid(input) * (1 - self.sigmoid(input))
-
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, output_size: int, activation_function: ActivationFunction):
         self.input_size = input_size
         self.output_size = output_size
+
+        self.activation_function = activation_function
 
         # Para guardar los valores de entrada y salida
         self.input = np.zeros(input_size)
@@ -25,7 +22,7 @@ class FullyConnected():
         self.input = input
 
         excitements = input @ self.weights
-        activations = self.sigmoid(excitements)
+        activations = self.activation_function.call(excitements)
 
         self.output = activations
         self.excitements = excitements
@@ -35,7 +32,7 @@ class FullyConnected():
     def back_prop(self, loss_gradient:ndarray, learning_rate: float):
 
         # Loss en funcion de los excitements
-        gradient_excitements = loss_gradient * self.sigmoid_prime(self.excitements)
+        gradient_excitements = loss_gradient * self.activation_function.derivative(self.excitements)
 
         # Loss en funcion de los pesos
         # Reshape para que sea una matriz de dim (input_size, output_size)
