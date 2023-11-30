@@ -91,5 +91,7 @@ class CR:
         #Now we update the current filters that we are on (going back to the previous set)
         self.filters -= learn_rate * previous_filters
         
-        #TODO reset last input image and return the derivation for the loos gradient of its inputs
-        pass
+        #TODO check reset last input image
+        self.last_input_image=None
+
+        return previous_filters
