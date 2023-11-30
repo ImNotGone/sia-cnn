@@ -3,25 +3,15 @@ import numpy as np
 from numpy import ndarray
 
 class PoolingType(Enum):
-    MAX = 0
-    MIN = 1
-    AVG = 2
+    MAX = np.amax
+    MIN = np.amin
+    AVG = np.average
 
 class PL():
     def __init__(self, pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
 
-        self.pooling_func = None
-
-        match(pooling_type):
-            case(PoolingType.MAX):
-                self.pooling_func = np.amax
-            case(PoolingType.MIN):
-                self.pooling_func = np.amin
-            case(PoolingType.AVG):
-                self.pooling_func = np.average
-            case(_):
-                raise "Unimplemented"
+        self.pooling_func = pooling_type
 
     def iterate_image_regions(self, input_image:ndarray):
 
