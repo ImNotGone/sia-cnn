@@ -1,41 +1,73 @@
-
 from cnn import CNN
 from dataset_loader import load_dataset
 from layers.cr import CR
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
-from layers.utils.activation_functions import Sigmoid
-from layers.utils.optimization_methods import Adam, GradientDescent
+from layers.utils.activation_functions import ReLU, Sigmoid
+from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
+from plots import visualize_filters, visualize_feature_maps
 
 
 def main():
-
     training_data, training_labels, test_data, test_labels = load_dataset()
 
     data_shape = training_data.shape[1:]
 
-    optimization_method = GradientDescent(0.01)
     activation_function = Sigmoid()
+    cnn = CNN(
+        [
+            CR(5, 3, Adam(0.001)),
+            Flatten(),
+            FullyConnected(
+                (data_shape[0] - 2) * (data_shape[1] - 2) * 5,
+                1000,
+                activation_function,
+                Adam(0.001),
+            ),
+            FullyConnected(1000, 500, activation_function, Adam(0.001)),
+            FullyConnected(500, 100, activation_function, Adam(0.001)),
+            FullyConnected(100, 50, activation_function, Adam(0.001)),
+            FullyConnected(50, 5, activation_function, Adam(0.001)),
+            FullyConnected(5, 1, Sigmoid(), Adam(0.001)),
+        ]
+    )
 
-    conv_layer = CR(5, 3, optimization_method)
-    flatten_layer = Flatten()
-    fully_connected_layer = FullyConnected((data_shape[0] - 2) * (data_shape[1] - 2) * 5, 5, activation_function, optimization_method)
-    softmax_layer = SM(5, 2, optimization_method)
+    """ loss_per_epoch = cnn.train(training_data, training_labels, 3, 10) """
 
-    cnn = CNN([conv_layer, flatten_layer, fully_connected_layer, softmax_layer])
-
-    loss_per_epoch = cnn.train(training_data, training_labels, 5, 10)
-
+    total_predictions = 0
     for data, label in zip(test_data, test_labels):
         output = cnn.forward_prop(data)
 
-        predicted = "square" if output[0] > output[1] else "triangle"
-        actual = "square" if label[0] > label[1] else "triangle"
+        predicted = "square" if output < 0.5 else "triangle"
+        actual = "square" if label == 0 else "triangle"
 
-        print("Predicted: ", predicted)
-        print("Actual: ", actual)
+        print(f"Predicted: {predicted}, Output: {output}")
+        print(f"Actual: {actual}, Label: {label}")
+
+        if predicted == actual:
+            total_predictions += 1
         print()
+
+    print("Accuracy: ", total_predictions / len(test_data))
+
+    visualize_filters(cnn)
+
+    # Get a square and a triangle
+    square = test_data[0]
+    for data, label in zip(test_data, test_labels):
+        if label == 0:
+            square = data
+            break
+    triangle = test_data[0]
+    for data, label in zip(test_data, test_labels):
+        if label == 1:
+            triangle = data
+            break
+
+    visualize_feature_maps(cnn, square, "square")
+    visualize_feature_maps(cnn, triangle, "triangle")
+
 
     print("Training finished")
 
