@@ -6,6 +6,7 @@ from layers.fully_connected import FullyConnected
 from layers.softmax import SM
 from layers.utils.activation_functions import ReLU, Sigmoid
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
+from plots import visualize_filters, visualize_feature_maps
 
 
 def main():
@@ -49,6 +50,24 @@ def main():
         print()
 
     print("Accuracy: ", total_predictions / len(test_data))
+
+    visualize_filters(cnn)
+
+    # Get a square and a triangle
+    square = test_data[0]
+    for data, label in zip(test_data, test_labels):
+        if label == 0:
+            square = data
+            break
+    triangle = test_data[0]
+    for data, label in zip(test_data, test_labels):
+        if label == 1:
+            triangle = data
+            break
+
+    visualize_feature_maps(cnn, square, "square")
+    visualize_feature_maps(cnn, triangle, "triangle")
+
 
     print("Training finished")
 

@@ -19,15 +19,20 @@ def load_dataset():
             images.append(cv2.resize(img, (img_size, img_size)))
             labels.append(folders.index(folder))
 
-    # Only keep first 100 images and last 100 images
-    images = images[:100] + images[-100:]
-    labels = labels[:100] + labels[-100:]
-
     # Shuffle data
     data = list(zip(images, labels))
     np.random.shuffle(data)
     images = [d[0] for d in data]
     labels = [d[1] for d in data]
+
+    # Only keep first 100 images and last 100 images
+    images = images[:100] + images[-100:]
+    labels = labels[:100] + labels[-100:]
+
+    sqare_qty = labels.count(0)
+    triangle_qty = labels.count(1)
+    print(f"Square qty: {sqare_qty}")
+    print(f"Triangle qty: {triangle_qty}")
 
     # Separate data into training sets and testing sets
     train_qty = int(len(images) * train_ratio)
