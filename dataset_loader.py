@@ -32,10 +32,6 @@ def load_dataset():
     # Separate data into training sets and testing sets
     train_qty = int(len(images) * train_ratio)
 
-    # Make labels one-hot encoded,
-    # e.g. 0 -> [1, 0], 1 -> [0, 1]
-    labels = np.eye(len(folders))[labels]
-
     train_images = images[:train_qty]
     train_labels = labels[:train_qty]
 
@@ -51,5 +47,8 @@ def load_dataset():
     test_images = np.array(test_images)
     test_images = test_images.astype("float32")
     test_images /= 255
+
+    np.array(train_labels)
+    np.array(test_labels)
 
     return train_images, train_labels, test_images, test_labels
