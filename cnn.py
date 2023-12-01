@@ -73,17 +73,19 @@ class CNN:
 
         return loss_per_epoch
 
-    def get_convolutions(self, input: ndarray):
+    def get_feature_maps(self, input: ndarray):
 
-        convolutions = []
+        feature_maps = []
 
         current_output = input
         for layer in self.layers:
-            if isinstance(layer, CR):
-                convolutions.append(current_output)
             current_output = layer.forward_prop(current_output)
+            if isinstance(layer, CR):
+                # Lista de feature maps
+                layer_feature_maps = np.split(current_output, current_output.shape[2], axis=2)
+                feature_maps.append(layer_feature_maps)
 
-        return convolutions
+        return feature_maps
 
     def get_filters(self):
         filters = []

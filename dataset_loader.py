@@ -19,22 +19,23 @@ def load_dataset():
             images.append(cv2.resize(img, (img_size, img_size)))
             labels.append(folders.index(folder))
 
-    # Only keep first 100 images and last 100 images
-    images = images[:100] + images[-100:]
-    labels = labels[:100] + labels[-100:]
-
     # Shuffle data
     data = list(zip(images, labels))
     np.random.shuffle(data)
     images = [d[0] for d in data]
     labels = [d[1] for d in data]
 
+    # Only keep first 100 images and last 100 images
+    images = images[:100] + images[-100:]
+    labels = labels[:100] + labels[-100:]
+
+    sqare_qty = labels.count(0)
+    triangle_qty = labels.count(1)
+    print(f"Square qty: {sqare_qty}")
+    print(f"Triangle qty: {triangle_qty}")
+
     # Separate data into training sets and testing sets
     train_qty = int(len(images) * train_ratio)
-
-    # Make labels one-hot encoded,
-    # e.g. 0 -> [1, 0], 1 -> [0, 1]
-    labels = np.eye(len(folders))[labels]
 
     train_images = images[:train_qty]
     train_labels = labels[:train_qty]
@@ -51,5 +52,8 @@ def load_dataset():
     test_images = np.array(test_images)
     test_images = test_images.astype("float32")
     test_images /= 255
+
+    np.array(train_labels)
+    np.array(test_labels)
 
     return train_images, train_labels, test_images, test_labels
