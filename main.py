@@ -33,7 +33,7 @@ def main():
         ]
     )
 
-    """ loss_per_epoch = cnn.train(training_data, training_labels, 3, 10) """
+    loss_per_epoch = cnn.train(training_data, training_labels, 5, 10)
 
     total_predictions = 0
     for data, label in zip(test_data, test_labels):
