@@ -28,11 +28,11 @@ class CR(Layer):
 
         self.padding = padding
 
-    def iterate_image_regions(self, input_image: ndarray):
+    def iterate_image_regions(self, input_images: ndarray):
         # generates matrices of filter_size * filter_size
         # for each section of the image, so that filters are aplied
 
-        heigth, width = input_image.shape
+        heigth, width, qty_images = input_images.shape
         match(self.padding):
             case(Padding.VALID):
                 # reduce size, for borders to fit
@@ -48,8 +48,9 @@ class CR(Layer):
 
         for i in range(heigth):
             for j in range(width):
-                image_region = input_image[i:(i+self.filter_size), j:(j+self.filter_size)]
-                yield image_region, i, j
+                for k in range(qty_images):
+                    image_region = input_images[i:(i+self.filter_size), j:(j+self.filter_size), k]
+                    yield image_region, i, j, k
 
     def forward_prop(self, input_images: ndarray):
         # aplies the qty_filters filters to the input image
@@ -70,21 +71,18 @@ class CR(Layer):
 
         output = np.zeros((heigth, width, self.qty_filters * qty_images))
 
-        #for image_region, i, j in self.iterate_image_regions(input_image):
-        for i in range(heigth):
-            for j in range(width):
-                for k in range(qty_images):
-                    # np.sum in this case
-                    # compresses a list of matrices to a list of the sum of each matrix
-                    image_region = input_images[i:i+self.filter_size, j:j+self.filter_size, k]
-                    output[i, j, k] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
-    
+        for image_region, i, j, k in self.iterate_image_regions(input_images):
+            # np.sum in this case
+            # compresses a list of matrices to a list of the sum of each matrix
+            image_region = input_images[i:i+self.filter_size, j:j+self.filter_size, k]
+            output[i, j, k] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
+
         return output
 
     def back_prop(self, loss_gradient: ndarray):
         #We cached the last input image while doing forward_prop to make back_prop easier
         #We check that forward propagation was done before doing back propagation
-        if(self.last_input_image is None):
+        if(self.last_input_images is None):
             #TODO implement error
             raise ForwardPropNotDoneError
         
@@ -93,8 +91,9 @@ class CR(Layer):
         previous_filters = np.zeros(self.filters.shape)
 
 
+        # TODO: FIX THIS
         #Now we reconstruct the filters, using the cached last input image
-        for image_region, i, j in self.iterate_image_regions(self.last_input_image):
+        for image_region, i, j in self.iterate_image_regions(self.last_input_images):
             for k in range(self.qty_filters):
                 previous_filters[k] +=  loss_gradient[i, j, k] * image_region
         
@@ -103,6 +102,6 @@ class CR(Layer):
 
         
         #TODO check reset last input image
-        self.last_input_image=None
+        self.last_input_images=None
 
         return previous_filters
