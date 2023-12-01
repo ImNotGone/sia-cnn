@@ -48,6 +48,7 @@ class CNN:
             losses = []
 
             for sample, label in zip(data, labels):
+                sample = sample.reshape(sample.shape[0], sample.shape[1], 1)
                 output = self.forward_prop(sample)
 
                 loss = self.cross_entropy_loss(output, label)

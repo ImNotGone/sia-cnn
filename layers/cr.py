@@ -69,12 +69,11 @@ class CR(Layer):
         # cache'd for easier back_prop
         self.last_input_images = input_images
 
-        output = np.zeros((heigth, width, self.qty_filters * qty_images))
+        output = np.zeros((heigth, width, qty_images, self.qty_filters))
 
         for image_region, i, j, k in self.iterate_image_regions(input_images):
             # np.sum in this case
             # compresses a list of matrices to a list of the sum of each matrix
-            image_region = input_images[i:i+self.filter_size, j:j+self.filter_size, k]
             output[i, j, k] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
 
         return output
@@ -83,7 +82,6 @@ class CR(Layer):
         #We cached the last input image while doing forward_prop to make back_prop easier
         #We check that forward propagation was done before doing back propagation
         if(self.last_input_images is None):
-            #TODO implement error
             raise ForwardPropNotDoneError
         
 
@@ -93,9 +91,9 @@ class CR(Layer):
 
         # TODO: FIX THIS
         #Now we reconstruct the filters, using the cached last input image
-        for image_region, i, j in self.iterate_image_regions(self.last_input_images):
+        for image_region, i, j, l in self.iterate_image_regions(self.last_input_images):
             for k in range(self.qty_filters):
-                previous_filters[k] +=  loss_gradient[i, j, k] * image_region
+                previous_filters[k] += loss_gradient[i, j, l, k] * image_region
         
         # floatNow we update the current filters that we are on (going back to the previous set)
         self.filters = self.optimization_method.get_updated_weights(self.filters, previous_filters)
