@@ -7,7 +7,10 @@ from layers.utils.optimization_methods import OptimizationMethod
 
 class SM(Layer):
     def softmax(self, input: ndarray):
-        return np.exp(input) / np.sum(np.exp(input))
+        # Avoid overflow
+        max_input = np.max(input)
+        exp_input = np.exp(input - max_input)
+        return exp_input / np.sum(exp_input)
 
     def __init__(
         self, input_size: int, output_size: int, optimization_method: OptimizationMethod
