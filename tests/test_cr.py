@@ -11,16 +11,35 @@ filter = [
 
 cr.filters[0] = np.array(filter)
 
-# 4 x 4
-image = [
-    [0, 50, 0, 29],
-    [0, 80, 31, 2],
-    [33, 90, 0, 75],
-    [0, 9, 0, 95]
-]
+# 4 x 4 x 1
+image = np.array(
+    [
+    [[0], [50], [0], [29]],
+    [[0], [80], [31], [2]],
+    [[33], [90], [0], [75]],
+    [[0], [9], [0], [95]]
+    ],
+)
 
 # 1(filter) x 2 x 2
 expected = np.array([[[29], [-192]], [[-35], [-22]]])
+actual = cr.forward_prop(np.array(image))
+print(f"image: {image}")
+print(f"expected: {expected}")
+print(f"actual: {actual}")
+
+# 4 x 4 x 2
+image = np.array(
+    [
+    [[0, 0], [50, 50], [0, 0], [29, 29]],
+    [[0, 0], [80, 80], [31, 31], [2, 2]],
+    [[33, 33], [90, 90], [0, 0], [75, 75]],
+    [[0, 0], [9, 9], [0, 0], [95, 95]]
+    ],
+)
+
+# 1(filter) x 2 x 2
+expected = np.array([[[29, 29], [-192, -192]], [[-35, -35], [-22, -22]]])
 actual = cr.forward_prop(np.array(image))
 print(f"image: {image}")
 print(f"expected: {expected}")

@@ -51,10 +51,10 @@ class CR(Layer):
                 image_region = input_image[i:(i+self.filter_size), j:(j+self.filter_size)]
                 yield image_region, i, j
 
-    def forward_prop(self, input_image: ndarray):
+    def forward_prop(self, input_images: ndarray):
         # aplies the qty_filters filters to the input image
 
-        heigth, width = input_image.shape
+        heigth, width, qty_images = input_images.shape
         match(self.padding):
             case(Padding.VALID):
                 # reduce size, for borders to fit
@@ -66,14 +66,18 @@ class CR(Layer):
                 raise 'Unimplemented'
 
         # cache'd for easier back_prop
-        self.last_input_image = input_image
+        self.last_input_images = input_images
 
-        output = np.zeros((heigth, width, self.qty_filters))
+        output = np.zeros((heigth, width, self.qty_filters * qty_images))
 
-        for image_region, i, j in self.iterate_image_regions(input_image):
-            # np.sum in this case
-            # compresses a list of matrices to a list of the sum of each matrix
-            output[i, j] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
+        #for image_region, i, j in self.iterate_image_regions(input_image):
+        for i in range(heigth):
+            for j in range(width):
+                for k in range(qty_images):
+                    # np.sum in this case
+                    # compresses a list of matrices to a list of the sum of each matrix
+                    image_region = input_images[i:i+self.filter_size, j:j+self.filter_size, k]
+                    output[i, j, k] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
     
         return output
 
