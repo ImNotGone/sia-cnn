@@ -20,9 +20,7 @@ class CNN:
         predicted = np.clip(predicted, 1e-15, 1 - 1e-15)  # Evito division por 0
         return (predicted - actual) / (predicted * (1 - predicted)) / len(predicted)
 
-    def __init__(self, input_shape, num_classes: int, layers: List[Layer]):
-        self.input_shape = input_shape
-        self.num_classes = num_classes
+    def __init__(self, layers: List[Layer]):
 
         # Aca van las layers, pueden ser convolucionales, pooling, fully connected, softmax, etc
         self.layers = layers
@@ -41,7 +39,7 @@ class CNN:
         for layer in reversed(self.layers):
             current_gradient = layer.back_prop(current_gradient)
 
-    def train(self, data: ndarray, labels: ndarray, epochs: int):
+    def train(self, data: ndarray, labels: ndarray, epochs: int, batch_size: int):
         loss_per_epoch = []
         best_loss = np.inf
         best_model = None
@@ -67,8 +65,8 @@ class CNN:
                 best_model = copy.deepcopy(self)
 
             # Cada 5% imprimo el progreso
-            if epoch % (epochs // 20) == 0:
-                print(f"Epoch: {epoch} Loss: {loss_per_epoch[-1]}")
+            """ if epoch % (epochs // 20) == 0: """
+            print(f"Epoch: {epoch} Loss: {loss_per_epoch[-1]}")
 
         if best_model is not None:
             self = best_model

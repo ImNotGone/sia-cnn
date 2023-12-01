@@ -35,7 +35,10 @@ class SM(Layer):
 
     def back_prop(self, loss_gradient: ndarray):
         # Loss en funcion de los pesos
-        gradient_weights = self.input.T @ loss_gradient
+        """ gradient_weights = self.input.T @ loss_gradient """
+        gradient_weights = self.input.reshape(-1, 1) @ loss_gradient.reshape(
+            1, -1
+        )
 
         # Actualizar pesos
         self.weights = self.optimization_method.get_updated_weights(

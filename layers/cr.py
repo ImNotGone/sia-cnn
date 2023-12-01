@@ -60,8 +60,8 @@ class CR(Layer):
                 # reduce size, for borders to fit
                 heigth -= (self.filter_size // 2)*2 # floored division
                 width  -= (self.filter_size // 2)*2 # floored division
-                print(heigth, width, self.filter_size, (self.filter_size // 2)*2)
-                print(self.filters)
+                """ print(heigth, width, self.filter_size, (self.filter_size // 2)*2) """
+                """ print(self.filters) """
             case(_):
                 raise 'Unimplemented'
 
