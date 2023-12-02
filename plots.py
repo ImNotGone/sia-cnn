@@ -4,17 +4,14 @@ def visualize_first_layer_filters(cnn):
     filters = cnn.get_filters()
     first_layer_filters = filters[0]
 
-    min_value = min([filter.min() for filter in first_layer_filters])
-    max_value = max([filter.max() for filter in first_layer_filters])
-
-    # Normalize filters
-    first_layer_filters = [(filter - min_value) / (max_value - min_value) for filter in first_layer_filters]
-
     for filter_index, filter in enumerate(first_layer_filters):
         # Only one channel in first layer
         filter = filter[0]
 
         plt.imshow(filter, cmap='gray')
+        for i in range(len(filter)):
+            for j in range(len(filter[i])):
+                plt.text(j,i, f'{filter[i,j]:.2f}', ha='center', va='center', color='green')
         plt.title('CNN Filter Visualization')
         plt.colorbar()
         plt.savefig(f'filter_first-layer_{filter_index}.png')
