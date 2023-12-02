@@ -20,10 +20,12 @@ def main():
     cnn = CNN(
         [
             CR(5, 3, Adam(0.001), (1, 50, 50)),
-            CR(3, 3, Adam(0.001), (5, 48, 48)),
+            PL((5, 48, 48)),
+            CR(3, 3, Adam(0.001), (5, 24, 24)),
+            PL((3, 22, 22)),
             Flatten(),
             FullyConnected(
-                6348,
+                363,
                 100,
                 activation_function,
                 Adam(0.001),
