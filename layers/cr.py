@@ -77,7 +77,6 @@ class CR(Layer):
         output = np.zeros(self.output_shape)
         for i in range(self.qty_filters):
             for j in range(self.chanells):
-                aux = self._correlate2d(input[j], self.filters[i,j], self.padding)
                 output[i] += self._correlate2d(input[j], self.filters[i,j], self.padding)
         return output
 
