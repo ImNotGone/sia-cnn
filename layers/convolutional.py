@@ -103,6 +103,8 @@ class Convolutional(Layer):
         return output
 
     def back_prop(self, loss_gradient: ndarray):
+        if (self.last_input is None):
+            raise ForwardPropNotDoneError
         filters_gradient = np.zeros(self.filters_shape)
         input_gradient = np.zeros(self.input_shape)
 
@@ -112,4 +114,6 @@ class Convolutional(Layer):
                 input_gradient[j] += self._convolve2d(loss_gradient[i], self.filters[i, j], Padding.FULL)
 
         self.filters = self.optimization_method.get_updated_weights(self.filters, filters_gradient)
+
+        self.last_input = None
         return input_gradient
