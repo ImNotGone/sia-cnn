@@ -48,19 +48,42 @@ class CR(Layer):
     def get_output_shape(self):
         return self.output_shape
 
-    def _correlate2d(self, a:ndarray, b:ndarray, padding:Padding):
-        output_heigth, output_width = padding.calculate_output_size(a.shape, b.shape)
-        vertical_padding, horizontal_padding = padding.calculate_padding(b.shape)
-        filter_heigth, filter_width = b.shape
+    # Fast implementation of 2d correlation using numpy
+    # Source: https://medium.com/@thepyprogrammer/2d-image-convolution-with-numpy-with-a-handmade-sliding-window-view-946c4acb98b4
+    def _correlate2d(self, input:ndarray, filter:ndarray, padding:Padding):
+        output_heigth, output_width = padding.calculate_output_size(input.shape, filter.shape)
+        vertical_padding, horizontal_padding = padding.calculate_padding(filter.shape)
+        filter_heigth, filter_width = filter.shape
 
-        padded_a = np.pad(a, ((vertical_padding, vertical_padding),(horizontal_padding, horizontal_padding)))
+        input = np.pad(input, ((vertical_padding, vertical_padding), (horizontal_padding, horizontal_padding)), mode='constant', constant_values=0)
 
-        output = np.zeros((output_heigth, output_width))
+        # filter1 creates an index system that calculates the sum of the x and y indices at each point
+        # Shape of filter1 is h x kernelW
+        filter1 = np.arange(filter_width) + np.arange(output_heigth)[:, np.newaxis]
+          
+        # filter2 similarly creates an index system
+        # Shape of filter2 is w * kernelH
+        filter2 = np.arange(filter_heigth) + np.arange(output_width)[:, np.newaxis]
 
-        for i in range(output_heigth):
-            for j in range(output_width):
-                region = padded_a[i:i+filter_heigth, j:j+filter_width]
-                output[i,j] = np.sum(region * b)
+        # intermediate is the stepped data, which has the shape h x kernelW x imageH
+        intermediate = input[filter1]
+          
+        # transpose the inner dimensions of the intermediate so as to enact another filter
+        # shape is now h x imageH x kernelW
+        intermediate = np.transpose(intermediate, (0, 2, 1))
+          
+        # Apply filter2 on the inner data piecewise, resultant shape is h x w x kernelW x kernelH
+        intermediate = intermediate[:, filter2]
+          
+        # transpose inwards again to get a resultant shape of h x w x kernelH x kernelW
+        intermediate = np.transpose(intermediate, (0, 1, 3, 2))
+          
+        # piecewise multiplication with kernel
+        product = intermediate * filter
+          
+        # find the sum of each piecewise product, shape is now h x w
+        output = product.sum(axis = (2,3))
+
         return output
     
     def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding): 
