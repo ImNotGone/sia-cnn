@@ -98,6 +98,8 @@ class CNN:
         for layer in self.layers:
             current_output = layer.forward_prop(current_output)
             if isinstance(layer, Convolutional):
+                # Apply ReLU
+                current_output = np.maximum(current_output, 0)
                 layer_feature_maps = [current_output[i] for i in range(current_output.shape[0])]
                 feature_maps.append(layer_feature_maps)
 

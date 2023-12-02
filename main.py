@@ -7,6 +7,7 @@ from layers.pooling import Pooling
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
+from layers.relu import Relu
 import numpy as np
 from layers.utils.activation_functions import get_act_func
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
@@ -48,19 +49,18 @@ def main():
         cnn = CNN(
             [
                 Convolutional(5, 3, Adam(delta), (1, 50, 50)),
+                Relu((5, 48, 48)),
                 Pooling((5, 48, 48)),
                 Convolutional(3, 3, Adam(delta), (5, 24, 24)),
+                Relu((3, 22, 22)),
                 Pooling((3, 22, 22)),
                 Flatten(),
                 FullyConnected(
                     363,
-                    100,
+                    1,
                     activation_function,
                     Adam(delta),
                 ),
-                FullyConnected(100, 50, activation_function, Adam(delta)),
-                FullyConnected(50, 5, activation_function, Adam(delta)),
-                FullyConnected(5, 1, activation_function, Adam(delta)),
             ]
         )
 
