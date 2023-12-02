@@ -1,3 +1,5 @@
+import json
+
 from cnn import CNN
 from dataset_loader import load_dataset
 from layers.cr import CR
@@ -11,32 +13,58 @@ from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from plots import visualize_first_layer_filters, visualize_feature_maps
 
 
+def get_batch_size(config, dataset_size) -> int:
+    training_strategy = config["training_strategy"]
+
+    if training_strategy == "batch":
+        return dataset_size
+    elif training_strategy == "mini_batch":
+        batch_size = config["batch_size"]
+
+        if batch_size > dataset_size:
+            raise Exception("Batch size is bigger than dataset size")
+
+        return batch_size
+    elif training_strategy == "online":
+        return 1
+    else:
+        raise Exception("Training strategy not found")
+
+
 def main():
     training_data, training_labels, test_data, test_labels = load_dataset()
 
     data_shape = training_data.shape[1:]
 
-    activation_function = Sigmoid()
-    cnn = CNN(
-        [
-            CR(5, 3, Adam(0.001), (1, 50, 50)),
-            PL((5, 48, 48)),
-            CR(3, 3, Adam(0.001), (5, 24, 24)),
-            PL((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(0.001),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(0.001)),
-            FullyConnected(50, 5, activation_function, Adam(0.001)),
-            FullyConnected(5, 1, Sigmoid(), Adam(0.001)),
-        ]
-    )
+    config_file = "config.json"
 
-    loss_per_epoch = cnn.train(training_data, training_labels, 5, 10)
+    with open(config_file) as json_file:
+        config = json.load(json_file)
+
+        batch_size = get_batch_size(config, len(training_data))
+        epochs = config["epochs"]
+
+        activation_function = Sigmoid()
+        cnn = CNN(
+            [
+                CR(5, 3, Adam(0.001), (1, 50, 50)),
+                PL((5, 48, 48)),
+                CR(3, 3, Adam(0.001), (5, 24, 24)),
+                PL((3, 22, 22)),
+                Flatten(),
+                FullyConnected(
+                    363,
+                    100,
+                    activation_function,
+                    Adam(0.001),
+                ),
+                FullyConnected(100, 50, activation_function, Adam(0.001)),
+                FullyConnected(50, 5, activation_function, Adam(0.001)),
+                FullyConnected(5, 1, Sigmoid(), Adam(0.001)),
+            ]
+        )
+
+    loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
 
     total_predictions = 0
     for data, label in zip(test_data, test_labels):
@@ -71,7 +99,6 @@ def main():
 
     visualize_feature_maps(cnn, square, "square")
     visualize_feature_maps(cnn, triangle, "triangle")
-
 
     print("Training finished")
 

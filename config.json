@@ -1,0 +1,5 @@
+{
+  "training_strategy": "mini_batch",
+  "batch_size": 50,
+  "epochs": 5
+}
