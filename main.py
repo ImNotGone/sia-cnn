@@ -5,6 +5,7 @@ from layers.pl import PL
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
+import numpy as np
 from layers.utils.activation_functions import ReLU, Sigmoid
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from plots import visualize_filters, visualize_feature_maps
@@ -18,9 +19,9 @@ def main():
     activation_function = Sigmoid()
     cnn = CNN(
         [
-            CR(5, 3, Adam(0.001)),
+            CR(5, 3, Adam(0.001), (1, 50, 50)),
             PL(),
-            CR(3, 3, Adam(0.001)),
+            CR(3, 3, Adam(0.001), (5, 24, 24)),
             PL(),
             Flatten(),
             FullyConnected(
@@ -39,6 +40,7 @@ def main():
 
     total_predictions = 0
     for data, label in zip(test_data, test_labels):
+        data = np.array([data])
         output = cnn.forward_prop(data)
 
         predicted = "square" if output < 0.5 else "triangle"

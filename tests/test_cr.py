@@ -47,11 +47,11 @@ print(f"actual: {actual}")
 
 # TODO: propper assert
 '''
-
+from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from layers.cr import CR, Padding
 import numpy as np
 
-cr = CR(2, 3, Padding.VALID)
+cr = CR(2, 3, Adam(0.001), (1, 4, 4), Padding.VALID)
 
 filter = [
     [-1, 0, 1], 
@@ -62,14 +62,15 @@ filter = [
 cr.filters[0] = np.array(filter)
 cr.filters[1] = np.array(filter).T
 
-# 4 x 4 x 1
+# 1 x 4 x 4
 image = np.array(
     [
-    [[0], [50], [0], [29]],
-    [[0], [80], [31], [2]],
-    [[33], [90], [0], [75]],
-    [[0], [9], [0], [95]]
-    ],
+    [
+    [0, 50, 0, 29],
+    [0, 80, 31, 2],
+    [33, 90, 0, 75],
+    [0, 9, 0, 95]
+    ]],
 )
 
 # 1(filter) x 2 x 2

@@ -48,6 +48,7 @@ class CNN:
             losses = []
 
             for sample, label in zip(data, labels):
+                sample = np.array([sample])
                 output = self.forward_prop(sample)
 
                 loss = self.cross_entropy_loss(output, label)

@@ -1,5 +1,6 @@
 import numpy as np
 from enum import Enum
+from typing import Tuple
 from numpy import ndarray
 
 from layers.utils import ForwardPropNotDoneError
@@ -7,115 +8,73 @@ from layers.utils.optimization_methods import OptimizationMethod
 from layers.layer import Layer
 
 class Padding(Enum):
-    VALID = 0
-    SAME  = 1
-    FULL  = 2
+    VALID = "valid", lambda a, b: (a[0] - b[0] + 1, a[1] - b[1] + 1)
+    SAME  = "same",  lambda a, _: (a)
+    FULL  = "full",  lambda a, b: (a[0] + b[0] - 1, a[1] + b[1] - 1)
+
+    @property
+    def mode(self):
+        return self.value[0]
+    
+    @property
+    def calculate_output_size(self):
+        return self.value[1]
 
 # Convolutional Relu
 class CR(Layer):
-    def __init__(self, qty__filters: int, filter_size: int, optimization_method: OptimizationMethod, padding: Padding = Padding.VALID):
+    def __init__(self, qty__filters: int, filter_size: int, optimization_method: OptimizationMethod, input_shape:Tuple[int, int, int], padding: Padding = Padding.VALID):
+
         self.qty_filters = qty__filters
         self.filter_size = filter_size
-
         self.optimization_method = optimization_method
         
         # cache for back_prop
-        self.last_input_image = None
+        self.last_input = None
 
-        # array of qty_filters matrices of filter_size * filter_size
-        # Divided by filter_size ^ 2 to reduce variance
-        self.filters = np.random.randn(qty__filters, filter_size, filter_size) / (filter_size**2)
+        self.input_shape = input_shape
+        chanells, heigth, width = input_shape
+        self.chanells = chanells
+        # TODO: this is *SUPPOSING* VALID PADDING
+        self.output_shape = (qty__filters, *padding.calculate_output_size((heigth, width), (filter_size, filter_size)))
+        self.filters_shape = (qty__filters, chanells, filter_size, filter_size)
+        self.filters = np.random.randn(*self.filters_shape)
 
         self.padding = padding
 
-    def iterate_image_regions(self, input_image: ndarray):
-        # generates matrices of filter_size * filter_size
-        # for each section of the image, so that filters are aplied
-        
-        # transform nxm to nxmx1
-        if(input_image.ndim == 2):
-            input_image = input_image.reshape(*input_image.shape, 1)
+    def get_output_shape(self):
+        return self.output_shape
 
-        heigth, width, chanells = input_image.shape
-        match(self.padding):
-            case(Padding.VALID):
-                # reduce size, for borders to fit
-                heigth -= (self.filter_size // 2)*2 # floored division
-                width  -= (self.filter_size // 2)*2 # floored division
-            case(Padding.SAME):
-                raise "Unimplemented"
-            case(Padding.FULL):
-                raise "Unimplemented"
-            case(_):
-                raise "Unimplemented"
-            
+    def _correlate2d(self, a:ndarray, b:ndarray, padding:Padding):
+        aux = np.correlate(a.flatten(), b.flatten(), padding.mode)
+        print(a.shape)
+        print(b.shape)
+        aux = aux.reshape(padding.calculate_output_size(a.shape, b.shape))
+        return aux
+    
+    def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding):
+        aux = np.convolve(a.flatten(), b.flatten(), padding.mode)
+        aux = aux.reshape(padding.calculate_output_size(a.shape, b.shape))
+        return aux
 
-        for i in range(heigth):
-            for j in range(width):
-                for k in range(chanells):
-                    image_region = input_image[i:(i+self.filter_size), j:(j+self.filter_size), k]
-                    yield image_region, i, j, k
-
-    def forward_prop(self, input_image: ndarray):
+    def forward_prop(self, input: ndarray):
         # aplies the qty_filters filters to the input image
+        self.last_input = input
 
-        # transform nxm to nxmx1
-        if(input_image.ndim == 2):
-            input_image = input_image.reshape(*input_image.shape, 1)
-
-        heigth, width, chanells = input_image.shape
-        
-        match(self.padding):
-            case(Padding.VALID):
-                # reduce size, for borders to fit
-                heigth -= (self.filter_size // 2)*2 # floored division
-                width  -= (self.filter_size // 2)*2 # floored division
-                """ print(heigth, width, self.filter_size, (self.filter_size // 2)*2) """
-                """ print(self.filters) """
-            case(_):
-                raise 'Unimplemented'
-
-        # cache'd for easier back_prop
-        self.last_input_image = input_image
-
-        output = np.zeros((heigth, width, self.qty_filters))
-
-        for image_region, i, j, _ in self.iterate_image_regions(input_image):
-            # np.sum in this case
-            # compresses a list of matrices to a list of the sum of each matrix
-            # sum along axis 1 & 2
-            output[i, j] += np.sum(image_region * self.filters, axis=(1, 2))
-
-        # Tomo el AVG despues de aplicar los n filtros
-        output /= chanells
-
+        output = np.zeros(self.output_shape)
+        for i in range(self.qty_filters):
+            for j in range(self.chanells):
+                print(input[j], self.filters[i,j], self.padding)
+                output[i] += self._correlate2d(input[j], self.filters[i,j], self.padding)
         return output
 
     def back_prop(self, loss_gradient: ndarray):
-        #We cached the last input image while doing forward_prop to make back_prop easier
-        #We check that forward propagation was done before doing back propagation
-        if(self.last_input_image is None):
-            raise ForwardPropNotDoneError
-        
+        filters_gradient = np.zeros(self.filters_shape)
+        input_gradient = np.zeros(self.input_shape)
 
-        #We create the previous filters layer to reconstruct it with the same shape as the current filters
-        previous_filters = np.zeros(self.filters.shape)
+        for i in range(self.qty_filters):
+            for j in range(self.chanells):
+                filters_gradient[i, j] = self._correlate2d(self.last_input[j], loss_gradient[i], self.padding)
+                input_gradient[j] += self._convolve2d(loss_gradient[i], self.filters[i, j], Padding.FULL)
 
-
-        #Now we reconstruct the filters, using the cached last input image
-        for image_region, i, j, _ in self.iterate_image_regions(self.last_input_image):
-            for k in range(self.qty_filters):
-                previous_filters[k] += loss_gradient[i, j, k] * image_region
-
-        # TODO: ver esto
-        # _, _, chanells = self.last_input_image.shape
-        # previous_filters /= chanells
-
-        # floatNow we update the current filters that we are on (going back to the previous set)
-        self.filters = self.optimization_method.get_updated_weights(self.filters, previous_filters)
-
-        
-        #TODO check reset last input image
-        self.last_input_image=None
-
-        return previous_filters
+        self.filters = self.optimization_method.get_updated_weights(self.filters, filters_gradient)
+        return input_gradient
