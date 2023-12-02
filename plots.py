@@ -11,7 +11,9 @@ def visualize_first_layer_filters(cnn):
         plt.imshow(filter, cmap='gray')
         for i in range(len(filter)):
             for j in range(len(filter[i])):
-                plt.text(j,i, f'{filter[i,j]:.2f}', ha='center', va='center', color='green')
+                value=filter[i,j]
+                color= 'green' if value >=0 else 'red'
+                plt.text(j,i, f'{value:.2f}', ha='center', va='center', color=color)
         plt.title('CNN Filter Visualization')
         plt.colorbar()
         plt.savefig(f'filter_first-layer_{filter_index}.png')
