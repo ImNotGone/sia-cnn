@@ -24,8 +24,7 @@ class Padding(Enum):
     def calculate_padding(self):
         return self.value[2]
 
-# Convolutional Relu
-class CR(Layer):
+class Convolutional(Layer):
     def __init__(self, qty__filters: int, filter_size: int, optimization_method: OptimizationMethod, input_shape:Tuple[int, int, int], padding: Padding = Padding.VALID):
 
         self.qty_filters = qty__filters

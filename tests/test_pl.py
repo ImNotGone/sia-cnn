@@ -1,8 +1,8 @@
-from layers.pl import PL, PoolingType
+from layers.pooling import Pooling, PoolingType
 import numpy as np
 
 # TEST MAX
-pl = PL((1, 4, 4), PoolingType.MAX, 2)
+pl = Pooling((1, 4, 4), PoolingType.MAX, 2)
 
 # 1 x 4 x 4
 image = np.array(
@@ -27,7 +27,7 @@ back = pl.back_prop(np.array([[[1, 2] , [3, 4]]]))
 print(back)
 
 # TEST MIN
-pl = PL((1, 4, 4), PoolingType.MIN, 2)
+pl = Pooling((1, 4, 4), PoolingType.MIN, 2)
 
 # 4 x 4 x 1
 image = np.array([[
@@ -50,7 +50,7 @@ back = pl.back_prop(np.array([[[1, 2] , [3, 4]]]))
 print(back)
 
 # TEST AVG
-pl = PL((1, 4, 4), PoolingType.AVG, 2)
+pl = Pooling((1, 4, 4), PoolingType.AVG, 2)
 
 # 1 x 4 x 4
 image = np.array(

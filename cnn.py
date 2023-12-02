@@ -5,7 +5,7 @@ import copy
 from numpy import ndarray
 
 from layers.layer import Layer
-from layers.cr import CR
+from layers.convolutional import Convolutional
 
 
 class CNN:
@@ -97,7 +97,7 @@ class CNN:
         current_output = input
         for layer in self.layers:
             current_output = layer.forward_prop(current_output)
-            if isinstance(layer, CR):
+            if isinstance(layer, Convolutional):
                 layer_feature_maps = [current_output[i] for i in range(current_output.shape[0])]
                 feature_maps.append(layer_feature_maps)
 
@@ -107,7 +107,7 @@ class CNN:
         filters = []
 
         for layer in self.layers:
-            if isinstance(layer, CR):
+            if isinstance(layer, Convolutional):
                 filters.append(layer.filters)
 
         return filters

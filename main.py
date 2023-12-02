@@ -2,8 +2,8 @@ import json
 
 from cnn import CNN
 from dataset_loader import load_dataset
-from layers.cr import CR
-from layers.pl import PL
+from layers.convolutional import Convolutional
+from layers.pooling import Pooling
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
@@ -47,10 +47,10 @@ def main():
 
         cnn = CNN(
             [
-                CR(5, 3, Adam(delta), (1, 50, 50)),
-                PL((5, 48, 48)),
-                CR(3, 3, Adam(delta), (5, 24, 24)),
-                PL((3, 22, 22)),
+                Convolutional(5, 3, Adam(delta), (1, 50, 50)),
+                Pooling((5, 48, 48)),
+                Convolutional(3, 3, Adam(delta), (5, 24, 24)),
+                Pooling((3, 22, 22)),
                 Flatten(),
                 FullyConnected(
                     363,

@@ -1,6 +1,6 @@
 from cnn import CNN
 from dataset_loader import load_dataset
-from layers.cr import CR
+from layers.convolutional import Convolutional
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
@@ -19,7 +19,7 @@ def main():
     activation_function = Sigmoid()
     cnn = CNN(
         [
-            CR(2, 3, Adam(0.001)),
+            Convolutional(2, 3, Adam(0.001)),
             Flatten(),
             FullyConnected(
                 (data_shape[0] - 2) * (data_shape[1] - 2) * 2,

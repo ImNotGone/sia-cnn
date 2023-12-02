@@ -13,7 +13,7 @@ class PoolingType(Enum):
     AVG = np.average
 
 
-class PL(Layer):
+class Pooling(Layer):
     def __init__(self, input_shape: Tuple[int, int, int], pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
         self.pooling = pooling_type

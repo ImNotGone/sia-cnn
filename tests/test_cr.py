@@ -1,8 +1,8 @@
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from layers.cr import CR, Padding
+from layers.convolutional import Convolutional, Padding
 import numpy as np
 
-cr = CR(2, 3, Adam(0.001), (1, 4, 4), Padding.VALID)
+Convolutional = Convolutional(2, 3, Adam(0.001), (1, 4, 4), Padding.VALID)
 
 
 filter = [
@@ -11,8 +11,8 @@ filter = [
     [-1, 0, 1]
 ]
 
-cr.filters[0][0] = np.array(filter)
-cr.filters[1][0] = np.array(filter)
+Convolutional.filters[0][0] = np.array(filter)
+Convolutional.filters[1][0] = np.array(filter)
 
 # 1 x 4 x 4
 image = np.array(
@@ -36,7 +36,7 @@ expected = np.array([
         [-35, -22]
     ]
 ])
-actual = cr.forward_prop(np.array(image))
+actual = Convolutional.forward_prop(np.array(image))
 #print(f"image: {image}")
 #print(f"expected: {expected}")
 #print(f"actual: {actual}")
@@ -58,7 +58,7 @@ image = np.array(
     ],
     ],
 )
-cr = CR(2, 3, Adam(0.001), (2, 4, 4), Padding.VALID)
+Convolutional = Convolutional(2, 3, Adam(0.001), (2, 4, 4), Padding.VALID)
 filter1 = [
     [
     [-1, 0, 1], 
@@ -85,10 +85,10 @@ filter2 = [
     ]
 ]
 
-cr.filters[0] = np.array(filter1)
-cr.filters[1] = np.array(filter2)
+Convolutional.filters[0] = np.array(filter1)
+Convolutional.filters[1] = np.array(filter2)
 
-actual = cr.forward_prop(np.array(image))
+actual = Convolutional.forward_prop(np.array(image))
 #print(f"image: {image}")
 #print(f"expected: {expected}")
 print(f"actual: {actual}")
