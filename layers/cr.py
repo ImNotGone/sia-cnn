@@ -8,9 +8,9 @@ from layers.utils.optimization_methods import OptimizationMethod
 from layers.layer import Layer
 
 class Padding(Enum):
-    VALID = "valid", lambda a, b: (a[0] - b[0] + 1, a[1] - b[1] + 1)
-    SAME  = "same",  lambda a, _: (a)
-    FULL  = "full",  lambda a, b: (a[0] + b[0] - 1, a[1] + b[1] - 1)
+    VALID = "valid", lambda a, b: (a[0] - b[0] + 1, a[1] - b[1] + 1), lambda _: (0, 0)
+    SAME  = "same",  lambda a, _: (a),                                lambda b: ((b[0] - 1) // 2, (b[1] - 1) // 2)
+    FULL  = "full",  lambda a, b: (a[0] + b[0] - 1, a[1] + b[1] - 1), lambda b: (b[0] - 1, b[1] - 1)
 
     @property
     def mode(self):
@@ -19,6 +19,10 @@ class Padding(Enum):
     @property
     def calculate_output_size(self):
         return self.value[1]
+
+    @property
+    def calculate_padding(self):
+        return self.value[2]
 
 # Convolutional Relu
 class CR(Layer):
@@ -45,25 +49,35 @@ class CR(Layer):
         return self.output_shape
 
     def _correlate2d(self, a:ndarray, b:ndarray, padding:Padding):
-        aux = np.correlate(a.flatten(), b.flatten(), padding.mode)
-        print(a.shape)
-        print(b.shape)
-        aux = aux.reshape(padding.calculate_output_size(a.shape, b.shape))
-        return aux
+        output_heigth, output_width = padding.calculate_output_size(a.shape, b.shape)
+        vertical_padding, horizontal_padding = padding.calculate_padding(b.shape)
+        filter_heigth, filter_width = b.shape
+
+        padded_a = np.pad(a, ((vertical_padding, vertical_padding),(horizontal_padding, horizontal_padding)))
+
+        output = np.zeros((output_heigth, output_width))
+
+        for i in range(output_heigth):
+            for j in range(output_width):
+                region = padded_a[i:i+filter_heigth, j:j+filter_width]
+                output[i,j] = np.sum(region * b)
+        return output
     
-    def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding):
-        aux = np.convolve(a.flatten(), b.flatten(), padding.mode)
-        aux = aux.reshape(padding.calculate_output_size(a.shape, b.shape))
-        return aux
+    def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding): 
+        return self._correlate2d(a, b.T, padding)
 
     def forward_prop(self, input: ndarray):
+        if (input.shape != self.input_shape):
+            print(f"actual_input_shape: {input.shape}")
+            print(f"expected_input_shape: {self.input_shape}")
+            raise "input shape specified does not match"
         # aplies the qty_filters filters to the input image
         self.last_input = input
 
         output = np.zeros(self.output_shape)
         for i in range(self.qty_filters):
             for j in range(self.chanells):
-                print(input[j], self.filters[i,j], self.padding)
+                aux = self._correlate2d(input[j], self.filters[i,j], self.padding)
                 output[i] += self._correlate2d(input[j], self.filters[i,j], self.padding)
         return output
 
