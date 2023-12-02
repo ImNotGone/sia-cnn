@@ -1,0 +1,7 @@
+{
+  "training_strategy": "batch",
+  "batch_size": 50,
+  "epochs": 10,
+  "delta": 0.001,
+  "activation_function": "sigmoid"
+}

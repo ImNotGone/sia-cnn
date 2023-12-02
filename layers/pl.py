@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from numpy import ndarray
+from typing import Tuple
 
 from layers.utils import ForwardPropNotDoneError
 from layers.layer import Layer
@@ -13,68 +14,82 @@ class PoolingType(Enum):
 
 
 class PL(Layer):
-    def __init__(self, pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
+    def __init__(self, input_shape: Tuple[int, int, int], pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
-        self.pooling_func = pooling_type.value
+        self.pooling = pooling_type
+
+        self.input_shape = input_shape
+        self.output_shape = (input_shape[0], input_shape[1] // self.stride, input_shape[2] // self.stride)
 
         # cache for back_prop
-        self.last_input_image = None
+        self.last_input = None
+        self.last_output = None
 
-    def iterate_image_regions(self, input_image: ndarray):
+    def get_output_shape(self):
+        return self.output_shape
 
-        heigth, width, _ = input_image.shape
-        # pooling reduces size by the stride factor
-        heigth = heigth // self.stride  # floored division
-        width = width // self.stride  # floored division
+    def iterate_regions(self, input:ndarray):
+        channels, heigth, width = input.shape
+        heigth = heigth // self.stride
+        width  = width  // self.stride
 
-        for i in range(heigth):
-            for j in range(width):
-                i_start = i * self.stride
-                i_end = i * self.stride + self.stride
-                j_start = j * self.stride
-                j_end = j * self.stride + self.stride
-                image_region = input_image[i_start:i_end, j_start:j_end]
-                yield image_region, i, j
+        for i in range(channels):
+            for j in range(heigth):
+                for k in range(width):
+                    j_start = j * self.stride
+                    j_end = j * self.stride + self.stride
+                    k_start = k * self.stride
+                    k_end = k * self.stride + self.stride
+                    region = input[i, j_start:j_end, k_start:k_end]
+                    yield region, i, j, k
+                
 
-    def forward_prop(self, input_image: ndarray):
+    def forward_prop(self, input: ndarray):
+        if (input.shape != self.input_shape):
+            print(f"actual_input_shape: {input.shape}")
+            print(f"expected_input_shape: {self.input_shape}")
+            raise "input shape specified does not match"
+        
+        # cache'd for easier back_prop
+        self.last_input = input
+
+        output = np.zeros(self.output_shape)
+
+        for region, i, j, k in self.iterate_regions(input):
+            output[i, j, k] = self.pooling(region)
 
         # cache'd for easier back_prop
-        self.last_input_image = input_image
-
-        heigth, width, qty_filters = input_image.shape
-        # pooling reduces size by the stride factor
-        heigth = heigth // self.stride  # floored division
-        width = width // self.stride  # floored division
-
-        output = np.zeros((heigth, width, qty_filters))
-
-        for image_region, i, j in self.iterate_image_regions(input_image):
-            output[i, j] = self.pooling_func(image_region, axis=(0, 1))  # apply function on axis 0 & 1
-
+        self.last_output = output
         return output
+    
+    def _single_value_back_prop(self, loss_gradient: ndarray):
+        gradient = np.zeros(self.last_input.shape)
+        for i, j, k in np.ndindex(gradient.shape):
+            if(self.last_input[i][j][k] == self.last_output[i][j//self.stride][k//self.stride]):
+                gradient[i][j][k] = loss_gradient[i][j//self.stride][k//self.stride]
+        return gradient
 
+    def _avg_back_prop(self, loss_gradient: ndarray):
+        return loss_gradient.repeat(self.stride, axis=1).repeat(self.stride,axis=2) / (self.stride**2)
+    
     def back_prop(self, loss_gradient: ndarray):
-        # We cached the last input image while doing forward_prop to make back_prop easier
+        # We cached the last input while doing forward_prop to make back_prop easier
         # We check that forward propagation was done before doing back propagation
-        if (self.last_input_image is None):
-            # TODO implement error
+        if (self.last_input is None):
             raise ForwardPropNotDoneError
 
-        # We create the previous filters layer to reconstruct it with the same shape as the current filters
-        input = np.zeros(self.last_input_image.shape)
-
-        # Now we reconstruct the filters, using the cached last input image
-        for image_region, i, j in self.iterate_image_regions(self.last_input_image):
-            height, width, k = image_region.shape
-            pool_value = self.pooling_func(image_region, axis=(0, 1))
-
-            for i_2 in range(height):
-                for j_2 in range(width):
-                    for k_2 in range(k):
-                        # If pixel is MAX, MIN or AVG, copy gradient to it.
-                        if image_region[i_2, j_2, k_2] == pool_value[k_2]:
-                            input[i * 2 + i_2, j * 2 + j_2, k_2] = loss_gradient[i, j, k_2]
-
-        self.last_input_image = None
-
-        return input
+        ret = None
+        match(self.pooling):
+            case(PoolingType.MIN):
+                ret = self._single_value_back_prop(loss_gradient)
+            case(PoolingType.MAX):
+                ret =  self._single_value_back_prop(loss_gradient)
+            case(PoolingType.AVG):
+                ret =  self._avg_back_prop(loss_gradient)
+        
+        if (ret is None):
+            raise "Backprop for current pooling not found!"
+        
+        # so that the guard clause works
+        self.last_input = None
+        return ret

@@ -1,15 +1,24 @@
 import matplotlib.pyplot as plt
 
-def visualize_filters(cnn):
+def visualize_first_layer_filters(cnn):
     filters = cnn.get_filters()
+    first_layer_filters = filters[0]
 
-    for layer_index, layer_filters in enumerate(filters):
-        for filter_index, filter in enumerate(layer_filters):
-            plt.imshow(filter, cmap='gray')
-            plt.title('CNN Filter Visualization')
-            plt.colorbar()
-            plt.savefig(f'filter_{layer_index}_{filter_index}.png')
-            plt.clf()
+    min_value = min([filter.min() for filter in first_layer_filters])
+    max_value = max([filter.max() for filter in first_layer_filters])
+
+    # Normalize filters
+    first_layer_filters = [(filter - min_value) / (max_value - min_value) for filter in first_layer_filters]
+
+    for filter_index, filter in enumerate(first_layer_filters):
+        # Only one channel in first layer
+        filter = filter[0]
+
+        plt.imshow(filter, cmap='gray')
+        plt.title('CNN Filter Visualization')
+        plt.colorbar()
+        plt.savefig(f'filter_first-layer_{filter_index}.png')
+        plt.clf()
 
 def visualize_feature_maps(cnn, data, label=""):
     feature_maps = cnn.get_feature_maps(data)

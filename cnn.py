@@ -39,6 +39,18 @@ class CNN:
         for layer in reversed(self.layers):
             current_gradient = layer.back_prop(current_gradient)
 
+    def iterate_mini_batches(self, data, labels, batch_size):
+        assert data.shape[0] == labels.shape[0]
+
+        if batch_size == len(data):
+            yield data, labels
+            return
+
+        for start_idx in range(0, data.shape[0], batch_size):
+            end_idx = min(start_idx + batch_size, data.shape[0])
+            excerpt = slice(start_idx, end_idx)
+            yield data[excerpt], labels[excerpt]
+
     def train(self, data: ndarray, labels: ndarray, epochs: int, batch_size: int):
         loss_per_epoch = []
         best_loss = np.inf
@@ -47,16 +59,21 @@ class CNN:
         for epoch in range(epochs):
             losses = []
 
-            for sample, label in zip(data, labels):
-                sample = sample.reshape(sample.shape[0], sample.shape[1], 1)
-                output = self.forward_prop(sample)
+            print(f"Starting epoch {epoch + 1}")
 
-                loss = self.cross_entropy_loss(output, label)
-                losses.append(loss)
+            for batch_data, batch_labels in self.iterate_mini_batches(data, labels, batch_size):
+                for i, sample, label in zip(range(len(batch_data)), batch_data, batch_labels):
+                    sample = np.array([sample])
+                    output = self.forward_prop(sample)
 
-                # Para backprop
-                loss_gradient = self.cross_entropy_loss_gradient(output, label)
-                self.back_prop(loss_gradient)
+                    loss = self.cross_entropy_loss(output, label)
+                    losses.append(loss)
+
+                    print(f"{i + 1}/{len(batch_data)}", end="\r")
+
+                    # Para backprop
+                    loss_gradient = self.cross_entropy_loss_gradient(output, label)
+                    self.back_prop(loss_gradient)
 
             loss = np.mean(losses)
             loss_per_epoch.append(loss)
@@ -65,9 +82,7 @@ class CNN:
                 best_loss = loss
                 best_model = copy.deepcopy(self)
 
-            # Cada 5% imprimo el progreso
-            """ if epoch % (epochs // 20) == 0: """
-            print(f"Epoch: {epoch} Loss: {loss_per_epoch[-1]}")
+            print(f"Finished Epoch: {epoch + 1}, Avg Loss: {loss_per_epoch[-1]}")
 
         if best_model is not None:
             self = best_model
@@ -76,14 +91,14 @@ class CNN:
 
     def get_feature_maps(self, input: ndarray):
 
+        input = np.array([input])
         feature_maps = []
 
         current_output = input
         for layer in self.layers:
             current_output = layer.forward_prop(current_output)
             if isinstance(layer, CR):
-                # Lista de feature maps
-                layer_feature_maps = np.split(current_output, current_output.shape[2], axis=2)
+                layer_feature_maps = [current_output[i] for i in range(current_output.shape[0])]
                 feature_maps.append(layer_feature_maps)
 
         return feature_maps

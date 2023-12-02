@@ -29,6 +29,7 @@ class ReLU(ActivationFunction):
     def derivative(self, x: ndarray):
         return 1. * (x > 0)
 
+
 # ----- Sigmoid -----
 class Sigmoid(ActivationFunction):
     def __init__(self, beta: float = 1):
@@ -41,6 +42,7 @@ class Sigmoid(ActivationFunction):
     def derivative(self, x: ndarray):
         return self.beta * self.call(x) * (1 - self.call(x))
 
+
 # ----- Tanh -----
 class Tanh(ActivationFunction):
     def __init__(self, beta: float = 1):
@@ -52,3 +54,15 @@ class Tanh(ActivationFunction):
 
     def derivative(self, x: ndarray):
         return self.beta * (1 - self.call(x) ** 2)
+
+
+def get_act_func(config):
+    act_func = config["activation_function"]
+    if act_func == "relu":
+        return ReLU()
+    elif act_func == "sigmoid":
+        return Sigmoid()
+    elif act_func == "tanh":
+        return Tanh()
+    else:
+        raise Exception("Activation function not found")

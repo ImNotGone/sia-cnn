@@ -53,7 +53,7 @@ def load_dataset():
     test_images = test_images.astype("float32")
     test_images /= 255
 
-    np.array(train_labels)
-    np.array(test_labels)
+    train_labels = np.array(train_labels)
+    test_labels = np.array(test_labels)
 
     return train_images, train_labels, test_images, test_labels
