@@ -16,13 +16,14 @@ class PoolingType(Enum):
 class PL(Layer):
     def __init__(self, input_shape: Tuple[int, int, int], pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
-        self.pooling_func = pooling_type
+        self.pooling = pooling_type
 
         self.input_shape = input_shape
         self.output_shape = (input_shape[0], input_shape[1] // self.stride, input_shape[2] // self.stride)
 
         # cache for back_prop
         self.last_input = None
+        self.last_output = None
 
     def get_output_shape(self):
         return self.output_shape
@@ -55,31 +56,40 @@ class PL(Layer):
         output = np.zeros(self.output_shape)
 
         for region, i, j, k in self.iterate_regions(input):
-            output[i, j, k] = self.pooling_func(region)
+            output[i, j, k] = self.pooling(region)
 
+        # cache'd for easier back_prop
+        self.last_output = output
         return output
+    
+    def _single_value_back_prop(self, loss_gradient: ndarray):
+        gradient = np.zeros(self.last_input.shape)
+        for i, j, k in np.ndindex(gradient.shape):
+            if(self.last_input[i][j][k] == self.last_output[i][j//self.stride][k//self.stride]):
+                gradient[i][j][k] = loss_gradient[i][j//self.stride][k//self.stride]
+        return gradient
 
+    def _avg_back_prop(self, loss_gradient: ndarray):
+        return loss_gradient.repeat(self.stride, axis=1).repeat(self.stride,axis=2) / (self.stride**2)
+    
     def back_prop(self, loss_gradient: ndarray):
-        # We cached the last input image while doing forward_prop to make back_prop easier
+        # We cached the last input while doing forward_prop to make back_prop easier
         # We check that forward propagation was done before doing back propagation
         if (self.last_input is None):
-            # TODO implement error
             raise ForwardPropNotDoneError
 
-        input = np.zeros(self.last_input.shape)
-
-        for region, i, j, k in self.iterate_regions(input):
-            pool_value = self.pooling_func(region)
-
-            for m, n in np.ndindex(region.shape):
-                # if the pixel is pool value -> transfer gradient
-                if[region[m][n]] == pool_value:
-                    m_start = m * self.stride
-                    m_end = m * self.stride + self.stride
-                    n_start = n * self.stride
-                    n_end = n * self.stride + self.stride
-                    input[i, m_start:m_end, n_start:n_end] = loss_gradient[i, j, k]
-
+        ret = None
+        match(self.pooling):
+            case(PoolingType.MIN):
+                ret = self._single_value_back_prop(loss_gradient)
+            case(PoolingType.MAX):
+                ret =  self._single_value_back_prop(loss_gradient)
+            case(PoolingType.AVG):
+                ret =  self._avg_back_prop(loss_gradient)
+        
+        if (ret is None):
+            raise "Backprop for current pooling not found!"
+        
+        # so that the guard clause works
         self.last_input = None
-
-        return input
+        return ret
