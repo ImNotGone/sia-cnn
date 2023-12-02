@@ -1,6 +1,7 @@
 from cnn import CNN
 from dataset_loader import load_dataset
 from layers.cr import CR
+from layers.pl import PL
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.softmax import SM
@@ -18,15 +19,16 @@ def main():
     cnn = CNN(
         [
             CR(5, 3, Adam(0.001)),
+            PL(),
+            CR(3, 3, Adam(0.001)),
+            PL(),
             Flatten(),
             FullyConnected(
-                (data_shape[0] - 2) * (data_shape[1] - 2) * 5,
-                1000,
+                363,
+                100,
                 activation_function,
                 Adam(0.001),
             ),
-            FullyConnected(1000, 500, activation_function, Adam(0.001)),
-            FullyConnected(500, 100, activation_function, Adam(0.001)),
             FullyConnected(100, 50, activation_function, Adam(0.001)),
             FullyConnected(50, 5, activation_function, Adam(0.001)),
             FullyConnected(5, 1, Sigmoid(), Adam(0.001)),

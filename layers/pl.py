@@ -15,7 +15,7 @@ class PoolingType(Enum):
 class PL(Layer):
     def __init__(self, pooling_type: PoolingType = PoolingType.MAX, stride: int = 2):
         self.stride = stride
-        self.pooling_func = pooling_type.value
+        self.pooling_func = pooling_type
 
         # cache for back_prop
         self.last_input_image = None
@@ -62,11 +62,13 @@ class PL(Layer):
 
         # We create the previous filters layer to reconstruct it with the same shape as the current filters
         input = np.zeros(self.last_input_image.shape)
-
+        print(f"input: {input.shape}")
+        print(f"loss: {loss_gradient.shape}")
         # Now we reconstruct the filters, using the cached last input image
         for image_region, i, j in self.iterate_image_regions(self.last_input_image):
             height, width, k = image_region.shape
             pool_value = self.pooling_func(image_region, axis=(0, 1))
+
 
             for i_2 in range(height):
                 for j_2 in range(width):

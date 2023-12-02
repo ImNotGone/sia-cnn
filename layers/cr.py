@@ -28,11 +28,15 @@ class CR(Layer):
 
         self.padding = padding
 
-    def iterate_image_regions(self, input_images: ndarray):
+    def iterate_image_regions(self, input_image: ndarray):
         # generates matrices of filter_size * filter_size
         # for each section of the image, so that filters are aplied
+        
+        # transform nxm to nxmx1
+        if(input_image.ndim == 2):
+            input_image = input_image.reshape(*input_image.shape, 1)
 
-        heigth, width, qty_images = input_images.shape
+        heigth, width, chanells = input_image.shape
         match(self.padding):
             case(Padding.VALID):
                 # reduce size, for borders to fit
@@ -48,14 +52,19 @@ class CR(Layer):
 
         for i in range(heigth):
             for j in range(width):
-                for k in range(qty_images):
-                    image_region = input_images[i:(i+self.filter_size), j:(j+self.filter_size), k]
+                for k in range(chanells):
+                    image_region = input_image[i:(i+self.filter_size), j:(j+self.filter_size), k]
                     yield image_region, i, j, k
 
-    def forward_prop(self, input_images: ndarray):
+    def forward_prop(self, input_image: ndarray):
         # aplies the qty_filters filters to the input image
 
-        heigth, width, qty_images = input_images.shape
+        # transform nxm to nxmx1
+        if(input_image.ndim == 2):
+            input_image = input_image.reshape(*input_image.shape, 1)
+
+        heigth, width, chanells = input_image.shape
+        
         match(self.padding):
             case(Padding.VALID):
                 # reduce size, for borders to fit
@@ -67,21 +76,25 @@ class CR(Layer):
                 raise 'Unimplemented'
 
         # cache'd for easier back_prop
-        self.last_input_images = input_images
+        self.last_input_image = input_image
 
-        output = np.zeros((heigth, width, qty_images, self.qty_filters))
+        output = np.zeros((heigth, width, self.qty_filters))
 
-        for image_region, i, j, k in self.iterate_image_regions(input_images):
+        for image_region, i, j, _ in self.iterate_image_regions(input_image):
             # np.sum in this case
             # compresses a list of matrices to a list of the sum of each matrix
-            output[i, j, k] = np.sum(image_region * self.filters, axis=(1, 2)) # sum along axis 1 & 2
+            # sum along axis 1 & 2
+            output[i, j] += np.sum(image_region * self.filters, axis=(1, 2))
+
+        # Tomo el AVG despues de aplicar los n filtros
+        output /= chanells
 
         return output
 
     def back_prop(self, loss_gradient: ndarray):
         #We cached the last input image while doing forward_prop to make back_prop easier
         #We check that forward propagation was done before doing back propagation
-        if(self.last_input_images is None):
+        if(self.last_input_image is None):
             raise ForwardPropNotDoneError
         
 
@@ -89,17 +102,20 @@ class CR(Layer):
         previous_filters = np.zeros(self.filters.shape)
 
 
-        # TODO: FIX THIS
         #Now we reconstruct the filters, using the cached last input image
-        for image_region, i, j, l in self.iterate_image_regions(self.last_input_images):
+        for image_region, i, j, _ in self.iterate_image_regions(self.last_input_image):
             for k in range(self.qty_filters):
-                previous_filters[k] += loss_gradient[i, j, l, k] * image_region
-        
+                previous_filters[k] += loss_gradient[i, j, k] * image_region
+
+        # TODO: ver esto
+        # _, _, chanells = self.last_input_image.shape
+        # previous_filters /= chanells
+
         # floatNow we update the current filters that we are on (going back to the previous set)
         self.filters = self.optimization_method.get_updated_weights(self.filters, previous_filters)
 
         
         #TODO check reset last input image
-        self.last_input_images=None
+        self.last_input_image=None
 
         return previous_filters
