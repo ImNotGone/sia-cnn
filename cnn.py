@@ -47,12 +47,16 @@ class CNN:
         for epoch in range(epochs):
             losses = []
 
-            for sample, label in zip(data, labels):
+            print(f"Starting epoch {epoch + 1}")
+
+            for i, sample, label in zip(range(len(data)), data, labels):
                 sample = np.array([sample])
                 output = self.forward_prop(sample)
 
                 loss = self.cross_entropy_loss(output, label)
                 losses.append(loss)
+
+                print(f"{i + 1}/{len(data)}", end="\r")
 
                 # Para backprop
                 loss_gradient = self.cross_entropy_loss_gradient(output, label)
@@ -65,9 +69,7 @@ class CNN:
                 best_loss = loss
                 best_model = copy.deepcopy(self)
 
-            # Cada 5% imprimo el progreso
-            """ if epoch % (epochs // 20) == 0: """
-            print(f"Epoch: {epoch} Loss: {loss_per_epoch[-1]}")
+            print(f"Finished Epoch: {epoch + 1}, Avg Loss: {loss_per_epoch[-1]}")
 
         if best_model is not None:
             self = best_model
@@ -76,14 +78,14 @@ class CNN:
 
     def get_feature_maps(self, input: ndarray):
 
+        input = np.array([input])
         feature_maps = []
 
         current_output = input
         for layer in self.layers:
             current_output = layer.forward_prop(current_output)
             if isinstance(layer, CR):
-                # Lista de feature maps
-                layer_feature_maps = np.split(current_output, current_output.shape[2], axis=2)
+                layer_feature_maps = [current_output[i] for i in range(current_output.shape[0])]
                 feature_maps.append(layer_feature_maps)
 
         return feature_maps

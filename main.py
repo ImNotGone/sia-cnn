@@ -8,7 +8,7 @@ from layers.softmax import SM
 import numpy as np
 from layers.utils.activation_functions import ReLU, Sigmoid
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from plots import visualize_filters, visualize_feature_maps
+from plots import visualize_first_layer_filters, visualize_feature_maps
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
 
     print("Accuracy: ", total_predictions / len(test_data))
 
-    visualize_filters(cnn)
+    visualize_first_layer_filters(cnn)
 
     # Get a square and a triangle
     square = test_data[0]
