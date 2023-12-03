@@ -31,10 +31,11 @@ def get_batch_size(config, dataset_size) -> int:
     else:
         raise Exception("Training strategy not found")
 
+
 def main():
     training_data, training_labels, test_data, test_labels = load_dataset()
 
-    data_shape = training_data.shape[1:]
+    data_shape = np.array([training_data[0]]).shape
 
     config_file = "config.json"
 
@@ -48,20 +49,20 @@ def main():
 
         cnn = CNN(
             [
-                Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-                Relu((5, 48, 48)),
-                Pooling((5, 48, 48)),
-                Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-                Relu((3, 22, 22)),
-                Pooling((3, 22, 22)),
+                Convolutional(5, 3, Adam(delta)),
+                Relu(),
+                Pooling(),
+                Convolutional(3, 3, Adam(delta)),
+                Relu(),
+                Pooling(),
                 Flatten(),
                 FullyConnected(
-                    363,
                     1,
                     activation_function,
                     Adam(delta),
                 ),
-            ]
+            ],
+            data_shape,
         )
 
     loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)

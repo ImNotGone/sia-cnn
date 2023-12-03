@@ -9,23 +9,27 @@ from layers.layer import Layer
 class FullyConnected(Layer):
     def __init__(
         self,
-        input_size: int,
-        output_size: int,
+        neuron_qty: int,
         activation_function: ActivationFunction,
         optimization_method: OptimizationMethod,
     ):
-        self.input_size = input_size
-        self.output_size = output_size
+        self.neuron_qty = neuron_qty
 
         self.activation_function = activation_function
         self.optimization_method = optimization_method
 
-        # Para guardar los valores de entrada y salida
-        self.input = np.zeros(input_size)
-        self.excitements = np.zeros(output_size)
-        self.output = np.zeros(output_size)
+    def initialize(self, input_shape: int):
+        self.input_shape = input_shape
 
-        self.weights = np.random.randn(input_size, output_size)
+        # Para guardar los valores de entrada y salida
+        self.input = np.zeros(input_shape)
+        self.excitements = np.zeros(self.neuron_qty)
+        self.output = np.zeros(self.neuron_qty)
+
+        self.weights = np.random.randn(input_shape, self.neuron_qty)
+
+    def get_output_shape(self):
+        return self.neuron_qty
 
     def forward_prop(self, input: ndarray):
         self.input = input

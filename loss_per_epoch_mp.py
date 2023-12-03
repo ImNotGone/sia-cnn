@@ -14,64 +14,73 @@ from plots import plot_errors_per_architecture
 import numpy as np
 import json
 import multiprocessing
+
+
 def architecture_test():
-    
+    training_data, training_labels, test_data, test_labels = load_dataset()
+    data_shape = np.array([training_data[0]]).shape
+
     delta = 0.001
-    activation_function=Sigmoid()
-    
+    activation_function = Sigmoid()
+
     iterations = 10
     architectures = [
-        ([CNN(
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ]
-        ) for _ in range(iterations)], "cnn1"),
-        ([CNN(
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                50,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(50, 10, activation_function, Adam(delta)),
-            FullyConnected(10, 1, activation_function, Adam(delta)),
-
-        ]
-        ) for _ in range(iterations)], "cnn2"),
+        (
+            [
+                CNN(
+                    [
+                        Convolutional(5, 3, Adam(delta)),
+                        Pooling(),
+                        Convolutional(3, 3, Adam(delta)),
+                        Pooling(),
+                        Flatten(),
+                        FullyConnected(
+                            100,
+                            activation_function,
+                            Adam(delta),
+                        ),
+                        FullyConnected(50, activation_function, Adam(delta)),
+                        FullyConnected(5, activation_function, Adam(delta)),
+                        FullyConnected(1, activation_function, Adam(delta)),
+                    ],
+                    data_shape,
+                )
+                for _ in range(iterations)
+            ],
+            "cnn1",
+        ),
+        (
+            [
+                CNN(
+                    [
+                        Convolutional(5, 3, Adam(delta)),
+                        Pooling(),
+                        Convolutional(3, 3, Adam(delta)),
+                        Pooling(),
+                        Flatten(),
+                        FullyConnected(
+                            50,
+                            activation_function,
+                            Adam(delta),
+                        ),
+                        FullyConnected(10, activation_function, Adam(delta)),
+                        FullyConnected(1, activation_function, Adam(delta)),
+                    ],
+                    data_shape,
+                )
+                for _ in range(iterations)
+            ],
+            "cnn2",
+        ),
     ]
-
-    training_data, training_labels, test_data, test_labels = load_dataset()
 
     data_shape = training_data.shape[1:]
 
     epochs = 3
 
-
     batch_size = training_data.shape[0]
-    
 
     mean_errors_per_architecture = {}
-
 
     for architecture_set, name in architectures:
         errors = multiprocessing.Manager().list()
@@ -113,7 +122,6 @@ def architecture_test():
         json.dump(mean_errors_per_architecture, f)
 
 
-
 def train_and_calculate_error(
     cnn,
     training_data,
@@ -131,6 +139,7 @@ def train_and_calculate_error(
     best_error = min(loss_per_epoch)
 
     errors_list.append(best_error)
+
 
 # No funciona si usamos lambdas en pooling
 

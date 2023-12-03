@@ -12,19 +12,21 @@ class SM(Layer):
         exp_input = np.exp(input - max_input)
         return exp_input / np.sum(exp_input)
 
-    def __init__(
-        self, input_size: int, output_size: int, optimization_method: OptimizationMethod
-    ):
-        self.input_size = input_size
+    def __init__(self, output_size: int, optimization_method: OptimizationMethod):
         self.output_size = output_size
-
         self.optimization_method = optimization_method
+
+    def initialize(self, input_size: int):
+        self.input_size = input_size
 
         # Para guardar los valores de entrada y salida
         self.input = np.zeros(input_size)
-        self.output = np.zeros(output_size)
+        self.output = np.zeros(self.output_size)
 
-        self.weights = np.random.randn(input_size, output_size)
+        self.weights = np.random.randn(input_size, self.output_size)
+
+    def get_output_shape(self):
+        return self.output_size
 
     def forward_prop(self, input: ndarray):
         self.input = input
@@ -38,10 +40,8 @@ class SM(Layer):
 
     def back_prop(self, loss_gradient: ndarray):
         # Loss en funcion de los pesos
-        """ gradient_weights = self.input.T @ loss_gradient """
-        gradient_weights = self.input.reshape(-1, 1) @ loss_gradient.reshape(
-            1, -1
-        )
+        """gradient_weights = self.input.T @ loss_gradient"""
+        gradient_weights = self.input.reshape(-1, 1) @ loss_gradient.reshape(1, -1)
 
         # Actualizar pesos
         self.weights = self.optimization_method.get_updated_weights(
