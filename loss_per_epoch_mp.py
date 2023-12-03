@@ -8,13 +8,12 @@ from layers.softmax import SM
 from layers.utils.activation_functions import ReLU, Sigmoid
 from copy import deepcopy
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-""" from plots import plot_errors_per_architecture """
+from plots import plot_errors_per_architecture
 
 
 import numpy as np
 import json
 import multiprocessing
-
 def architecture_test():
     
     delta = 0.001
@@ -107,7 +106,7 @@ def architecture_test():
 
         mean_errors_per_architecture[name] = (mean_error, std_error)
 
-    """ plot_errors_per_architecture(mean_errors_per_architecture) """
+    plot_errors_per_architecture(mean_errors_per_architecture)
 
     # Serialize errors
     with open("errors_architecture.json", "w") as f:
