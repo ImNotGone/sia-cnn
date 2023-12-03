@@ -8,7 +8,7 @@ from layers.layer import Layer
 class Relu(Layer):
     def __init__(self, input_shape: Tuple[int, int, int]):
         self.input_shape = input_shape
-        self.out_shape = input_shape
+        self.output_shape = input_shape
 
         # cache for back_prop
         self.last_input = None
@@ -30,8 +30,8 @@ class Relu(Layer):
         if (self.last_input is None):
             raise ForwardPropNotDoneError
         
-        aux = np.where(self.last_input > 0, 1, 0)
-        aux = aux * loss_gradient
+        # if last_input has a value > 0 -> return the loss_gradient for that value since derivative is 1
+        aux = np.where(self.last_input > 0, loss_gradient, 0)
 
         self.last_input = None
         return aux
