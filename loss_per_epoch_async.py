@@ -12,6 +12,29 @@ from layers.softmax import SM
 from layers.utils.activation_functions import ReLU, Sigmoid
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from plots import plot_errors_per_architecture
+import copy  
+
+def create_layers_from_text(architecture_text, delta):
+    activation_function = Sigmoid()  # Define your activation function here
+
+    layers = []
+    for layer_info in architecture_text:
+        layer_type = layer_info[0]
+        if layer_type == 'Convolutional':
+            _, kernel_size, _, adam_params, input_shape = layer_info
+            layers.append(Convolutional(*kernel_size, Adam(delta), input_shape))
+        elif layer_type == 'Pooling':
+            _, pool_shape = layer_info
+            layers.append(Pooling(pool_shape))
+        elif layer_type == 'Flatten':
+            layers.append(Flatten())
+        elif layer_type == 'FullyConnected':
+            _, input_size, output_size = layer_info
+            layers.append(FullyConnected(input_size, output_size, activation_function, Adam(delta)))
+        else:
+            raise ValueError(f"Unsupported layer type: {layer_type}")
+
+    return layers
 
 def train_and_calculate_error(cnn, training_data, training_labels, epochs, batch_size):
     return CNN(cnn).train(training_data, training_labels, epochs, batch_size)
@@ -36,155 +59,63 @@ async def architecture_test_async(architecture, iterations, training_data, train
 
     return errors
 
-async def run_multiple_architectures():
-    delta = 0.001
-    activation_function = Sigmoid()
-
-    architectures = [
-        (
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ]
-        ),
-        (
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                5,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ]
-        ),
-    ]
-
-    training_data, training_labels, _, _ = load_dataset()
-    epochs = 2
-    batch_size = 100
-    iterations = 2
-
-    tasks = []
-    for idx, arch in enumerate(architectures, start=1):
-        #architecture = CNN(arch)
-        name = f"cnn{idx}"
-        tasks.append(architecture_test_async(arch, iterations, training_data, training_labels, epochs, batch_size))
-
-    results = await asyncio.gather(*tasks)
-
-    mean_errors_per_architecture = {f"cnn{i+1}": errors for i, errors in enumerate(results)}
-    plot_errors_per_architecture(mean_errors_per_architecture)
-
-    with open("errors_architecture.json", "w") as f:
-        json.dump(mean_errors_per_architecture, f)
-
 async def run_multiple_architectures2():
     delta = 0.001
     activation_function = Sigmoid()
 
-    architectures = [
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
+    #architectures = [
+    #    [
+    #        Convolutional(5, 3, Adam(delta), (1, 50, 50)),
+    #        Pooling((5, 48, 48)),
+    #        Convolutional(3, 3, Adam(delta), (5, 24, 24)),
+    #        Pooling((3, 22, 22)),
+    #        Flatten(),
+    #        FullyConnected(
+    #            363,
+    #            100,
+    #            activation_function,
+    #            Adam(delta),
+    #        ),
+    #        FullyConnected(100, 50, activation_function, Adam(delta)),
+    #        FullyConnected(50, 5, activation_function, Adam(delta)),
+    #        FullyConnected(5, 1, activation_function, Adam(delta)),
 
-        ],[
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ],
-        [
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ],[
-            Convolutional(5, 3, Adam(delta), (1, 50, 50)),
-            Pooling((5, 48, 48)),
-            Convolutional(3, 3, Adam(delta), (5, 24, 24)),
-            Pooling((3, 22, 22)),
-            Flatten(),
-            FullyConnected(
-                363,
-                100,
-                activation_function,
-                Adam(delta),
-            ),
-            FullyConnected(100, 50, activation_function, Adam(delta)),
-            FullyConnected(50, 5, activation_function, Adam(delta)),
-            FullyConnected(5, 1, activation_function, Adam(delta)),
-
-        ],
+    #    ]
+    #]
+    
+    architecture_text = [
+        ['Convolutional', (5, 3), None, None, (1, 50, 50)],
+        ['Pooling', (5, 48, 48)],
+        ['Convolutional', (3, 3), None, None, (5, 24, 24)],
+        ['Pooling', (3, 22, 22)],
+        ['Flatten'],
+        ['FullyConnected', 363, 100],
+        ['FullyConnected', 100, 50],
+        ['FullyConnected', 50, 5],
+        ['FullyConnected', 5, 1]
     ]
 
-    training_data, training_labels, _, _ = load_dataset()
-    epochs = 2
-    batch_size = 100
-    iterations = 1  # Change this number to the desired iterations for each architecture
+    iterations = 5
+    architectures = []
+    for _ in range(iterations):  
+        
+        layers = create_layers_from_text(architecture_text, delta)
+        architectures.append(layers)
 
+    training_data, training_labels, _, _ = load_dataset()
+    epochs = 3
+    batch_size = 100
+    
     tasks = []
     for idx, arch in enumerate(architectures, start=1):
-        tasks.append(architecture_test_async(arch, iterations, training_data, training_labels, epochs, batch_size))
+        for _ in range(1):
+            tasks.append(architecture_test_async(arch, 1, training_data, training_labels, epochs, batch_size))
 
     results = await asyncio.gather(*tasks)
 
     mean_errors_per_architecture = {f"cnn{i+1}": errors for i, errors in enumerate(results)}
     #plot_errors_per_architecture(mean_errors_per_architecture)
-
+    print(mean_errors_per_architecture)
     with open("errors_architecture.json", "w") as f:
         json.dump(mean_errors_per_architecture, f)
 
