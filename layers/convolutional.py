@@ -40,7 +40,9 @@ class Convolutional(Layer):
         # TODO: this is *SUPPOSING* VALID PADDING
         self.output_shape = (qty__filters, *padding.calculate_output_size((heigth, width), (filter_size, filter_size)))
         self.filters_shape = (qty__filters, chanells, filter_size, filter_size)
-        self.filters = np.random.randn(*self.filters_shape)
+        
+        # / filter_size ** 2 to reduce variance
+        self.filters = np.random.randn(*self.filters_shape) / (filter_size**2)
 
         self.padding = padding
 
