@@ -29,18 +29,17 @@ class Pooling(Layer):
         return self.output_shape
 
     def iterate_regions(self, input:ndarray):
-        channels, heigth, width = input.shape
-        heigth = heigth // self.stride
-        width  = width  // self.stride
+        # output shape has heigth and width already divided by stride
+        channels, heigth, width = self.output_shape
 
         for i in range(channels):
             for j in range(heigth):
                 for k in range(width):
                     j_start = j * self.stride
-                    j_end = j * self.stride + self.stride
+                    j_end   = j_start + self.stride
                     k_start = k * self.stride
-                    k_end = k * self.stride + self.stride
-                    region = input[i, j_start:j_end, k_start:k_end]
+                    k_end   = k_start + self.stride
+                    region  = input[i, j_start:j_end, k_start:k_end]
                     yield region, i, j, k
                 
 
@@ -61,7 +60,8 @@ class Pooling(Layer):
         # cache'd for easier back_prop
         self.last_output = output
         return output
-    
+   
+    # Loads loss_gradient to the value that was pooled on foward prop
     def _single_value_back_prop(self, loss_gradient: ndarray):
         gradient = np.zeros(self.last_input.shape)
         for i, j, k in np.ndindex(gradient.shape):
@@ -69,6 +69,7 @@ class Pooling(Layer):
                 gradient[i][j][k] = loss_gradient[i][j//self.stride][k//self.stride]
         return gradient
 
+    # distributes loss_gradient on all stride * stride matrices
     def _avg_back_prop(self, loss_gradient: ndarray):
         return loss_gradient.repeat(self.stride, axis=1).repeat(self.stride,axis=2) / (self.stride**2)
     

@@ -37,7 +37,8 @@ class Convolutional(Layer):
         self.input_shape = input_shape
         chanells, heigth, width = input_shape
         self.chanells = chanells
-        # TODO: this is *SUPPOSING* VALID PADDING
+
+        # call padding func to calculate output shape
         self.output_shape = (qty__filters, *padding.calculate_output_size((heigth, width), (filter_size, filter_size)))
         self.filters_shape = (qty__filters, chanells, filter_size, filter_size)
         
@@ -87,7 +88,8 @@ class Convolutional(Layer):
 
         return output
     
-    def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding): 
+    def _convolve2d(self, a:ndarray, b:ndarray, padding:Padding):
+        # Traspose b, then correlate 
         return self._correlate2d(a, b.T, padding)
 
     def forward_prop(self, input: ndarray):
@@ -113,6 +115,7 @@ class Convolutional(Layer):
         for i in range(self.qty_filters):
             for j in range(self.chanells):
                 filters_gradient[i, j] = self._correlate2d(self.last_input[j], loss_gradient[i], self.padding)
+                # Padding Full since we need the whole input back
                 input_gradient[j] += self._convolve2d(loss_gradient[i], self.filters[i, j], Padding.FULL)
 
         self.filters = self.optimization_method.get_updated_weights(self.filters, filters_gradient)
