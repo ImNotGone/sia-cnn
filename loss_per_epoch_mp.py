@@ -6,8 +6,9 @@ from layers.fully_connected import FullyConnected
 from layers.pooling import Pooling
 from layers.softmax import SM
 from layers.utils.activation_functions import ReLU, Sigmoid
+from copy import deepcopy
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from plots import plot_errors_per_architecture
+""" from plots import plot_errors_per_architecture """
 
 
 import numpy as np
@@ -19,8 +20,9 @@ def architecture_test():
     delta = 0.001
     activation_function=Sigmoid()
     
+    iterations = 10
     architectures = [
-        (CNN(
+        ([CNN(
         [
             Convolutional(5, 3, Adam(delta), (1, 50, 50)),
             Pooling((5, 48, 48)),
@@ -38,8 +40,8 @@ def architecture_test():
             FullyConnected(5, 1, activation_function, Adam(delta)),
 
         ]
-        ),"cnn1"),
-        (CNN(
+        ) for _ in range(iterations)], "cnn1"),
+        ([CNN(
         [
             Convolutional(5, 3, Adam(delta), (1, 50, 50)),
             Pooling((5, 48, 48)),
@@ -56,7 +58,7 @@ def architecture_test():
             FullyConnected(10, 1, activation_function, Adam(delta)),
 
         ]
-        ),"cnn2"),
+        ) for _ in range(iterations)], "cnn2"),
     ]
 
     training_data, training_labels, test_data, test_labels = load_dataset()
@@ -66,24 +68,23 @@ def architecture_test():
     epochs = 3
 
 
-    batch_size = 100
+    batch_size = training_data.shape[0]
     
 
     mean_errors_per_architecture = {}
 
-    iterations = 3
 
-    for architecture, name in architectures:
+    for architecture_set, name in architectures:
         errors = multiprocessing.Manager().list()
 
         # Create processes
         processes = []
-        for _ in range(iterations):
+        for cnn in architecture_set:
             processes.append(
                 multiprocessing.Process(
                     target=train_and_calculate_error,
                     args=(
-                        architecture,
+                        cnn,
                         training_data,
                         training_labels,
                         epochs,
@@ -106,7 +107,7 @@ def architecture_test():
 
         mean_errors_per_architecture[name] = (mean_error, std_error)
 
-    plot_errors_per_architecture(mean_errors_per_architecture)
+    """ plot_errors_per_architecture(mean_errors_per_architecture) """
 
     # Serialize errors
     with open("errors_architecture.json", "w") as f:

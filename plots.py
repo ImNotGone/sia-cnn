@@ -30,3 +30,32 @@ def visualize_feature_maps(cnn, data, label=""):
             plt.savefig(f'feature_map_{layer_index}_{feature_map_index}_{label}.png')
             plt.clf()
 
+
+def plot_errors_per_architecture(
+    errors_per_architecture: dict[str, tuple[float, float]]
+):
+    print(errors_per_architecture.values())
+    means = [error[0] for error in errors_per_architecture.values()]
+    stds = [error[1] for error in errors_per_architecture.values()]
+
+    plt.bar(
+        [i + 1 for i in range(len(errors_per_architecture))],
+        means,
+        yerr=stds,
+        capsize=5,
+    )
+
+    names = list(errors_per_architecture.keys())
+
+    plt.xticks(
+        [i + 1 for i in range(len(errors_per_architecture))],
+        names,
+    )
+
+    plt.xlabel("Architecture")
+    plt.ylabel("Error")
+
+    plt.title("Mean Error per architecture (10 iterations)")
+
+    plt.savefig("errors_per_architecture.png")
+    plt.figure()
