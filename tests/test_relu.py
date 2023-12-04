@@ -1,7 +1,8 @@
 from layers.relu import Relu        
 import numpy as np
 
-r = Relu((1, 2, 2))
+r = Relu()
+r.initialize((1, 2, 2))
 input = np.array([[
     [1, -1],
     [-3, 4],

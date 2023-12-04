@@ -2,7 +2,8 @@ from layers.pooling import Pooling, PoolingType
 import numpy as np
 
 # TEST MAX
-pl = Pooling((1, 4, 4), PoolingType.MAX, 2)
+pl = Pooling(PoolingType.MAX, 2)
+pl.initialize((1, 4, 4))
 
 # 1 x 4 x 4
 image = np.array(
@@ -27,7 +28,8 @@ back = pl.back_prop(np.array([[[1, 2] , [3, 4]]]))
 print(back)
 
 # TEST MIN
-pl = Pooling((1, 4, 4), PoolingType.MIN, 2)
+pl = Pooling(PoolingType.MIN, 2)
+pl.initialize((1, 4, 4))
 
 # 4 x 4 x 1
 image = np.array([[
@@ -50,7 +52,8 @@ back = pl.back_prop(np.array([[[1, 2] , [3, 4]]]))
 print(back)
 
 # TEST AVG
-pl = Pooling((1, 4, 4), PoolingType.AVG, 2)
+pl = Pooling(PoolingType.AVG, 2)
+pl.initialize((1, 4, 4))
 
 # 1 x 4 x 4
 image = np.array(

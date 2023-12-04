@@ -2,7 +2,8 @@ from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from layers.convolutional import Convolutional, Padding
 import numpy as np
 
-convolutional = Convolutional(2, 3, Adam(0.001), (1, 4, 4), Padding.VALID)
+convolutional = Convolutional(2, 3, Adam(0.001), Padding.VALID)
+convolutional.initialize((1, 4, 4))
 
 
 filter = [
@@ -58,7 +59,8 @@ image = np.array(
     ],
     ],
 )
-convolutional = Convolutional(2, 3, Adam(0.001), (2, 4, 4), Padding.VALID)
+convolutional = Convolutional(2, 3, Adam(0.001), Padding.VALID)
+convolutional.initialize((2, 4, 4))
 filter1 = [
     [
     [-1, 0, 1], 
