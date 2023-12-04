@@ -17,6 +17,7 @@ from utils.plots import (
     visualize_feature_maps,
     plot_errors_per_epoch,
 )
+from utils.save import save_errors_per_epoch, save_predictions
 
 
 def get_batch_size(config, dataset_size) -> int:
@@ -38,7 +39,6 @@ def get_batch_size(config, dataset_size) -> int:
 
 
 def main():
-
     print("Loading dataset")
 
     training_data, training_labels, test_data, test_labels = load_dataset()
@@ -79,6 +79,7 @@ def main():
     loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
 
     plot_errors_per_epoch(loss_per_epoch)
+    save_errors_per_epoch(loss_per_epoch)
 
     # --- Test ---
 
@@ -99,9 +100,9 @@ def main():
         predictions.append((predicted, actual, output, label))
 
     plot_confusion_matrix(predictions)
+    save_predictions(predictions)
 
     print(f"Accuracy: {correct / len(test_data)}")
-
 
     # --- Visualization ---
 
@@ -124,8 +125,8 @@ def main():
     visualize_feature_maps(cnn, square, "square")
     visualize_feature_maps(cnn, triangle, "triangle")
 
-
     print("Finished")
+
 
 if __name__ == "__main__":
     main()

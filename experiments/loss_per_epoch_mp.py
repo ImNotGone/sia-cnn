@@ -9,6 +9,7 @@ from layers.utils.activation_functions import ReLU, Sigmoid
 from copy import deepcopy
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
 from utils.plots import plot_errors_per_architecture
+from utils.save import save_errors_per_architecture
 
 
 import numpy as np
@@ -118,8 +119,7 @@ def architecture_test():
     plot_errors_per_architecture(mean_errors_per_architecture)
 
     # Serialize errors
-    with open("errors_architecture.json", "w") as f:
-        json.dump(mean_errors_per_architecture, f)
+    save_errors_per_architecture(mean_errors_per_architecture)
 
 
 def train_and_calculate_error(
