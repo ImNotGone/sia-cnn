@@ -11,7 +11,11 @@ from layers.relu import Relu
 import numpy as np
 from layers.utils.activation_functions import get_act_func
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from plots import visualize_first_layer_filters, visualize_feature_maps
+from plots import (
+    plot_confusion_matrix,
+    visualize_first_layer_filters,
+    visualize_feature_maps,
+)
 
 
 def get_batch_size(config, dataset_size) -> int:
@@ -33,6 +37,9 @@ def get_batch_size(config, dataset_size) -> int:
 
 
 def main():
+
+    print("Loading dataset")
+
     training_data, training_labels, test_data, test_labels = load_dataset()
 
     data_shape = np.array([training_data[0]]).shape
@@ -56,6 +63,7 @@ def main():
                 Relu(),
                 Pooling(),
                 Flatten(),
+                FullyConnected(100, activation_function, Adam(delta)),
                 FullyConnected(
                     1,
                     activation_function,
@@ -65,9 +73,17 @@ def main():
             data_shape,
         )
 
+    print("Starting training")
+
     loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
 
-    total_predictions = 0
+
+    # --- Test ---
+
+    print("Starting test")
+
+    predictions = []
+    correct = 0
     for data, label in zip(test_data, test_labels):
         data = np.array([data])
         output = cnn.forward_prop(data)
@@ -75,14 +91,19 @@ def main():
         predicted = "square" if output < 0.5 else "triangle"
         actual = "square" if label == 0 else "triangle"
 
-        print(f"Predicted: {predicted}, Output: {output}")
-        print(f"Actual: {actual}, Label: {label}")
-
         if predicted == actual:
-            total_predictions += 1
-        print()
+            correct += 1
 
-    print("Accuracy: ", total_predictions / len(test_data))
+        predictions.append((predicted, actual, output, label))
+
+    plot_confusion_matrix(predictions)
+
+    print(f"Accuracy: {correct / len(test_data)}")
+
+
+    # --- Visualization ---
+
+    print("Starting visualization")
 
     visualize_first_layer_filters(cnn)
 
@@ -101,8 +122,8 @@ def main():
     visualize_feature_maps(cnn, square, "square")
     visualize_feature_maps(cnn, triangle, "triangle")
 
-    print("Training finished")
 
+    print("Finished")
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,14 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
+
+# Create plot dir if it doesn't exist
+import os
+
+plot_dir = "results"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+
 
 def visualize_first_layer_filters(cnn):
     filters = cnn.get_filters()
@@ -8,26 +18,27 @@ def visualize_first_layer_filters(cnn):
         # Only one channel in first layer
         filter = filter[0]
 
-        plt.imshow(filter, cmap='gray')
+        plt.imshow(filter, cmap="gray")
         for i in range(len(filter)):
             for j in range(len(filter[i])):
-                value=filter[i,j]
-                color= 'green' if value >=0 else 'red'
-                plt.text(j,i, f'{value:.2f}', ha='center', va='center', color=color)
-        plt.title('CNN Filter Visualization')
+                value = filter[i, j]
+                color = "green" if value >= 0 else "red"
+                plt.text(j, i, f"{value:.2f}", ha="center", va="center", color=color)
+        plt.title("CNN Filter Visualization")
         plt.colorbar()
-        plt.savefig(f'filter_first-layer_{filter_index}.png')
+        plt.savefig(f"{plot_dir}/filter_first-layer_{filter_index}.png")
         plt.clf()
+
 
 def visualize_feature_maps(cnn, data, label=""):
     feature_maps = cnn.get_feature_maps(data)
 
     for layer_index, layer_feature_maps in enumerate(feature_maps):
         for feature_map_index, feature_map in enumerate(layer_feature_maps):
-            plt.imshow(feature_map, cmap='gray')
-            plt.title(f'CNN Feature Map Visualization {label}')
+            plt.imshow(feature_map, cmap="gray")
+            plt.title(f"CNN Feature Map Visualization {label}")
             plt.colorbar()
-            plt.savefig(f'feature_map_{layer_index}_{feature_map_index}_{label}.png')
+            plt.savefig(f"{plot_dir}/feature_map_{layer_index}_{feature_map_index}_{label}.png")
             plt.clf()
 
 
@@ -57,5 +68,54 @@ def plot_errors_per_architecture(
 
     plt.title("Mean Error per architecture (10 iterations)")
 
-    plt.savefig("errors_per_architecture.png")
-    plt.figure()
+    plt.savefig(f"{plot_dir}/errors_per_architecture.png")
+    plt.clf()
+
+
+
+def plot_confusion_matrix(predictions: list[tuple[str, str, float, float]]):
+    square_predictions = [
+        prediction for prediction in predictions if prediction[0] == "square"
+    ]
+    correct_squares = len(
+        [prediction for prediction in square_predictions if prediction[1] == "square"]
+    )
+    false_squares = len(square_predictions) - correct_squares
+
+    triangle_predictions = [
+        prediction for prediction in predictions if prediction[0] == "triangle"
+    ]
+    correct_triangles = len(
+        [
+            prediction
+            for prediction in triangle_predictions
+            if prediction[1] == "triangle"
+        ]
+    )
+    false_triangles = len(triangle_predictions) - correct_triangles
+    
+    confusion_matrix_2x2 = np.array([[correct_squares, false_squares], [false_triangles, correct_triangles]])
+
+    _, ax = plt.subplots()
+
+    cax = ax.matshow(confusion_matrix_2x2, cmap=plt.cm.Blues)
+
+    for i in range(confusion_matrix_2x2.shape[0]):
+        for j in range(confusion_matrix_2x2.shape[1]):
+            color = "white" if i == j else "red"
+            ax.text(j, i, str(confusion_matrix_2x2[i, j]), va='center', ha='center', color=color)
+
+    #los verticales osn los verdaderos
+    plt.xticks(np.arange(2), ['Actual Square', 'Actual Triangle'])
+    # yticks centrados en el medio de la celda, por eso el 0.5
+    plt.yticks(np.arange(2), ['Predicted Square', 'Predicted Triangle'], rotation=90, va='center', ha='center')
+
+
+
+    
+    plt.colorbar(cax)
+
+    plt.title('Confusion Matrix')
+
+    plt.savefig(f"{plot_dir}/confusion_matrix.png")
+    plt.clf()
