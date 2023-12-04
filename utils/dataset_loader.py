@@ -4,11 +4,12 @@ import os
 
 # TODO check if we have to set the cwd
 # parameters
-img_size = 50  # TODO check this
+img_size = 200  # TODO check this
 train_ratio = 0.8  # TODO check this
+samples_per_class = 100  # TODO check this
 
 
-def load_dataset():
+def load_dataset(img_size=img_size, train_ratio=train_ratio, samples_per_class=samples_per_class):
     folders = ["data/shapes/square", "data/shapes/triangle"]
     labels = []
     images = []
@@ -25,23 +26,33 @@ def load_dataset():
     images = [d[0] for d in data]
     labels = [d[1] for d in data]
 
-    # Only keep first 100 images and last 100 images
-    images = images[:100] + images[-100:]
-    labels = labels[:100] + labels[-100:]
+    # Reduce amount of data
+    squares = []
+    triangles = []
+    for image, label in zip(images, labels):
+        if label == 0:
+            squares.append(image)
+        else:
+            triangles.append(image)
+    images = squares[:samples_per_class] + triangles[:samples_per_class]
+    labels = [0] * samples_per_class + [1] * samples_per_class
 
     sqare_qty = labels.count(0)
     triangle_qty = labels.count(1)
-    print(f"Square qty: {sqare_qty}")
-    print(f"Triangle qty: {triangle_qty}")
-
     # Separate data into training sets and testing sets
     train_qty = int(len(images) * train_ratio)
+    square_train_qty = int(train_qty * sqare_qty / (sqare_qty + triangle_qty))
+    triangle_train_qty = train_qty - square_train_qty
 
-    train_images = images[:train_qty]
-    train_labels = labels[:train_qty]
+    print(f"There are {sqare_qty} squares and {triangle_qty} triangles")
 
-    test_images = images[train_qty:]
-    test_labels = labels[train_qty:]
+    train_images = images[:square_train_qty] + images[samples_per_class : samples_per_class + triangle_train_qty]
+    train_labels = labels[:square_train_qty] + labels[samples_per_class : samples_per_class + triangle_train_qty]
+    test_images = images[square_train_qty : samples_per_class] + images[samples_per_class + triangle_train_qty :]
+    test_labels = labels[square_train_qty : samples_per_class] + labels[samples_per_class + triangle_train_qty :]
+
+    print(f"There are {len(train_images)} training images and {len(test_images)} testing images")
+
 
     # Training set first
     train_images = np.array(train_images)

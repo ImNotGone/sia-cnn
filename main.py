@@ -41,17 +41,18 @@ def get_batch_size(config, dataset_size) -> int:
 
 def main():
     start_time = time.time()
-
-    print("Loading dataset")
-
-    training_data, training_labels, test_data, test_labels = load_dataset()
-
-    data_shape = np.array([training_data[0]]).shape
-
     config_file = "config.json"
 
     with open(config_file) as json_file:
         config = json.load(json_file)
+
+        print("Loading dataset")
+
+        img_size = config["image_size"]
+
+        training_data, training_labels, test_data, test_labels = load_dataset(img_size)
+
+        data_shape = np.array([training_data[0]]).shape
 
         batch_size = get_batch_size(config, len(training_data))
         epochs = config["epochs"]
