@@ -13,6 +13,11 @@ class OptimizationMethod(ABC):
     def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         pass
 
+    @abstractmethod
+    def update_learning_rate(self, new_eta: float):
+        pass
+
+
 # ----- Gradient Descent -----
 class GradientDescent(OptimizationMethod):
     def __init__(self, learning_rate: float):
@@ -21,6 +26,10 @@ class GradientDescent(OptimizationMethod):
 
     def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
         return weights - self.learning_rate * gradient_weights
+
+    def update_learning_rate(self, new_eta: float):
+        self.learning_rate = new_eta
+
 
 # ----- Momentum -----
 class Momentum(OptimizationMethod):
@@ -35,6 +44,9 @@ class Momentum(OptimizationMethod):
         updated_weights = weights - self.learning_rate * gradient_weights + self.momentum * self.previous_gradient
         self.previous_gradient = gradient_weights
         return updated_weights
+
+    def update_learning_rate(self, new_eta: float):
+        self.learning_rate = new_eta
 
 # ----- Adam -----
 class Adam(OptimizationMethod):
@@ -64,6 +76,10 @@ class Adam(OptimizationMethod):
         updated_weights = weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
 
         return updated_weights
+
+    def update_learning_rate(self, new_eta: float):
+        self.learning_rate = new_eta
+
 
 
 
