@@ -3,7 +3,7 @@ import concurrent.futures
 import numpy as np
 import json
 from cnn import CNN
-from dataset_loader import load_dataset
+from utils.dataset_loader import load_dataset
 from layers.convolutional import Convolutional
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
@@ -11,7 +11,7 @@ from layers.pooling import Pooling
 from layers.softmax import SM
 from layers.utils.activation_functions import ReLU, Sigmoid
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from plots import plot_errors_per_architecture
+from utils.plots import plot_errors_per_architecture
 import copy  
 
 def create_layers_from_text(architecture_text, delta):

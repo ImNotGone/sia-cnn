@@ -1,7 +1,7 @@
 import json
 
 from cnn import CNN
-from dataset_loader import load_dataset
+from utils.dataset_loader import load_dataset
 from layers.convolutional import Convolutional
 from layers.pooling import Pooling
 from layers.flatten import Flatten
@@ -11,7 +11,7 @@ from layers.relu import Relu
 import numpy as np
 from layers.utils.activation_functions import get_act_func
 from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
-from plots import (
+from utils.plots import (
     plot_confusion_matrix,
     visualize_first_layer_filters,
     visualize_feature_maps,

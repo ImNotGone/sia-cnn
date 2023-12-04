@@ -1,5 +1,5 @@
 from cnn import CNN
-from dataset_loader import load_dataset
+from utils.dataset_loader import load_dataset
 from layers.convolutional import Convolutional
 from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
