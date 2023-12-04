@@ -71,6 +71,15 @@ def plot_errors_per_architecture(
     plt.savefig(f"{plot_dir}/errors_per_architecture.png")
     plt.clf()
 
+def plot_errors_per_epoch(errors_per_epoch: list[float]):
+    plt.plot(errors_per_epoch)
+    plt.xlabel("Epoch")
+    plt.ylabel("Error")
+
+    plt.title("Error per epoch")
+
+    plt.savefig(f"{plot_dir}/errors_per_epoch.png")
+    plt.clf()
 
 
 def plot_confusion_matrix(predictions: list[tuple[str, str, float, float]]):

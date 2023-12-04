@@ -15,6 +15,7 @@ from plots import (
     plot_confusion_matrix,
     visualize_first_layer_filters,
     visualize_feature_maps,
+    plot_errors_per_epoch,
 )
 
 
@@ -77,6 +78,7 @@ def main():
 
     loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
 
+    plot_errors_per_epoch(loss_per_epoch)
 
     # --- Test ---
 
