@@ -34,7 +34,10 @@ class Momentum(OptimizationMethod):
         self.previous_gradient = np.array([])
 
     def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
-        updated_weights = weights - self.learning_rate * gradient_weights + self.momentum * self.previous_gradient
+        if self.previous_gradient.size == 0:
+            self.previous_gradient = np.zeros_like(weights)
+
+        updated_weights = weights - (self.learning_rate * gradient_weights + self.momentum * self.previous_gradient)
         self.previous_gradient = gradient_weights
         return updated_weights
 
