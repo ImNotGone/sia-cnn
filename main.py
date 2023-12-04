@@ -1,4 +1,5 @@
 import json
+import time
 
 from cnn import CNN
 from utils.dataset_loader import load_dataset
@@ -39,6 +40,8 @@ def get_batch_size(config, dataset_size) -> int:
 
 
 def main():
+    start_time = time.time()
+
     print("Loading dataset")
 
     training_data, training_labels, test_data, test_labels = load_dataset()
@@ -125,7 +128,8 @@ def main():
     visualize_feature_maps(cnn, square, "square")
     visualize_feature_maps(cnn, triangle, "triangle")
 
-    print("Finished")
+    end_time = time.time()
+    print(f"Finished in {int(end_time - start_time)} seconds")
 
 
 if __name__ == "__main__":
