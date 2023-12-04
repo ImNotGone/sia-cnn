@@ -90,22 +90,6 @@ class CNN:
                 best_loss = loss
                 best_model = copy.deepcopy(self)
 
-            #Adaptive learning rate (ETA)
-            #TODO: should the learning rate be updated every iteration or after consistent loss increase/decrease?
-            # Check if loss is increasing and, if it is, decrease learning rate
-            if epoch > 0 and loss_per_epoch[-1] > loss_per_epoch[-2]:
-                for layer in self.layers:
-                    if hasattr(layer, 'optimization_method'):
-                        layer.optimization_method.update_learning_rate(layer.optimization_method.learning_rate * 0.9)
-                        print(f"New learning rate for layer {layer.__class__.__name__}: {layer.optimization_method.learning_rate}")
-
-            # Check if loss is decreasing and, if it is, increase learning rate
-            if epoch > 0 and loss_per_epoch[-1] < loss_per_epoch[-2]:
-                for layer in self.layers:
-                    if hasattr(layer, 'optimization_method'):
-                        layer.optimization_method.update_learning_rate(layer.optimization_method.learning_rate * 1.1)
-                        print(f"New learning rate for layer {layer.__class__.__name__}: {layer.optimization_method.learning_rate}")
-
             print(f"Finished Epoch: {epoch + 1}, Avg Loss: {loss_per_epoch[-1]}")
 
         if best_model is not None:

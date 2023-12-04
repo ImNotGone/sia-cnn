@@ -10,11 +10,7 @@ class OptimizationMethod(ABC):
         pass
 
     @abstractmethod
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
-        pass
-
-    @abstractmethod
-    def update_learning_rate(self, new_eta: float):
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
         pass
 
 
@@ -24,11 +20,8 @@ class GradientDescent(OptimizationMethod):
         super().__init__()
         self.learning_rate = learning_rate
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
         return weights - self.learning_rate * gradient_weights
-
-    def update_learning_rate(self, new_eta: float):
-        self.learning_rate = new_eta
 
 
 # ----- Momentum -----
@@ -40,13 +33,10 @@ class Momentum(OptimizationMethod):
 
         self.previous_gradient = np.array([])
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
         updated_weights = weights - self.learning_rate * gradient_weights + self.momentum * self.previous_gradient
         self.previous_gradient = gradient_weights
         return updated_weights
-
-    def update_learning_rate(self, new_eta: float):
-        self.learning_rate = new_eta
 
 # ----- Adam -----
 class Adam(OptimizationMethod):
@@ -61,7 +51,7 @@ class Adam(OptimizationMethod):
         self.v = np.array([])
         self.t = 0
 
-    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray) -> ndarray:
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
         self.t += 1
 
         if self.m.size == 0:
@@ -77,8 +67,34 @@ class Adam(OptimizationMethod):
 
         return updated_weights
 
-    def update_learning_rate(self, new_eta: float):
-        self.learning_rate = new_eta
+
+# ----- Adaptive Eta -----
+class AdaptiveEta(OptimizationMethod):
+    def __init__(self, initial_eta: float, decay_factor: float = 0.9, increase_factor: float = 1.1, threshold: float = 0.01):
+        super().__init__()
+        self.learning_rate = initial_eta
+        self.decay_factor = decay_factor
+        self.increase_factor = increase_factor
+        self.threshold = threshold
+        self.previous_loss = float('inf')
+
+    def get_updated_weights(self, weights: ndarray, gradient_weights: ndarray, loss: float=0) -> ndarray:
+
+        current_loss = loss
+        loss_change = self.previous_loss - current_loss
+
+         # Check if loss is increasing and, if it is, decrease learning rate
+        if loss_change > self.threshold:
+            self.learning_rate *= self.decay_factor
+
+        # Check if loss is decreasing and, if it is, increase learning rate
+        elif loss_change < -self.threshold:
+            self.learning_rate *= self.increase_factor
+
+        self.previous_loss = current_loss 
+
+        updated_weights = weights - self.learning_rate * gradient_weights
+        return updated_weights
 
 
 
