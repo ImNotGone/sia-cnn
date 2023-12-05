@@ -5,81 +5,84 @@ from layers.flatten import Flatten
 from layers.fully_connected import FullyConnected
 from layers.pooling import Pooling
 from layers.softmax import SM
+from layers.relu import Relu
 from layers.utils.activation_functions import ReLU, Sigmoid
 from copy import deepcopy
-from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
+from layers.utils.optimization_methods import (
+    Adam,
+    GradientDescent,
+    Momentum,
+    AdaptiveEta,
+)
 from utils.plots import plot_errors_per_architecture
 from utils.save import save_errors_per_architecture
 
 
 import numpy as np
-import json
 import multiprocessing
 
 
 def architecture_test():
     training_data, training_labels, test_data, test_labels = load_dataset()
     data_shape = np.array([training_data[0]]).shape
+    print(data_shape)
 
     delta = 0.001
     activation_function = Sigmoid()
 
     iterations = 10
+    epochs = 10
+    batch_size = training_data.shape[0]
+
     architectures = [
         (
             [
                 CNN(
                     [
-                        Convolutional(5, 3, Adam(delta)),
                         Pooling(),
-                        Convolutional(3, 3, Adam(delta)),
+                        Pooling(),
+                        Convolutional(5, 3, Adam(delta)),
+                        Relu(),
                         Pooling(),
                         Flatten(),
+                        FullyConnected(100, activation_function, Adam(delta)),
                         FullyConnected(
-                            100,
+                            1,
                             activation_function,
                             Adam(delta),
                         ),
-                        FullyConnected(50, activation_function, Adam(delta)),
-                        FullyConnected(5, activation_function, Adam(delta)),
-                        FullyConnected(1, activation_function, Adam(delta)),
                     ],
                     data_shape,
                 )
                 for _ in range(iterations)
             ],
-            "cnn1",
+            "2MP-5C3-R-2MP-FL-100FC-1FC",
         ),
         (
             [
                 CNN(
                     [
-                        Convolutional(5, 3, Adam(delta)),
+                        Pooling(),
                         Pooling(),
                         Convolutional(3, 3, Adam(delta)),
+                        Relu(),
                         Pooling(),
                         Flatten(),
+                        FullyConnected(100, activation_function, Adam(delta)),
                         FullyConnected(
-                            50,
+                            1,
                             activation_function,
                             Adam(delta),
                         ),
-                        FullyConnected(10, activation_function, Adam(delta)),
-                        FullyConnected(1, activation_function, Adam(delta)),
                     ],
                     data_shape,
                 )
                 for _ in range(iterations)
             ],
-            "cnn2",
+            "2MP-3C3-R-2MP-FL-100FC-1FC",
         ),
     ]
-
     data_shape = training_data.shape[1:]
-
-    epochs = 3
-
-    batch_size = training_data.shape[0]
 
     mean_errors_per_architecture = {}
 
@@ -97,7 +100,6 @@ def architecture_test():
                         training_data,
                         training_labels,
                         epochs,
-                        batch_size,
                         errors,
                     ),
                 )
@@ -116,10 +118,10 @@ def architecture_test():
 
         mean_errors_per_architecture[name] = (mean_error, std_error)
 
-    plot_errors_per_architecture(mean_errors_per_architecture)
-
     # Serialize errors
     save_errors_per_architecture(mean_errors_per_architecture)
+
+    plot_errors_per_architecture(mean_errors_per_architecture)
 
 
 def train_and_calculate_error(
@@ -127,14 +129,13 @@ def train_and_calculate_error(
     training_data,
     training_labels,
     epochs,
-    batch_size,
     errors_list,
 ):
     # Get a random seed for the process
     pid = multiprocessing.current_process().pid
     np.random.seed(pid)
 
-    loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
+    loss_per_epoch = cnn.train(training_data, training_labels, epochs)
 
     best_error = min(loss_per_epoch)
 

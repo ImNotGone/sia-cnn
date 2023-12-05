@@ -100,7 +100,17 @@ class AdaptiveEta(OptimizationMethod):
         return updated_weights
 
 
+def get_optimization_method(config): 
+    opt_method = config["type"]
+    eta = config["eta"]
 
-
-        
-        
+    if opt_method == "gradient_descent":
+        return GradientDescent(eta)
+    elif opt_method == "momentum":
+        return Momentum(eta, config["momentum"])
+    elif opt_method == "adam":
+        return Adam(eta, config["beta1"], config["beta2"], config["epsilon"])
+    elif opt_method == "adaptive_eta":
+        return AdaptiveEta(eta, config["decay_factor"], config["increase_factor"], config["threshold"])
+    else:
+        raise ValueError(f"Invalid optimization method: {opt_method}")

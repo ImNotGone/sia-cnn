@@ -11,7 +11,7 @@ from layers.softmax import SM
 from layers.relu import Relu
 import numpy as np
 from layers.utils.activation_functions import get_act_func
-from layers.utils.optimization_methods import Adam, GradientDescent, Momentum
+from layers.utils.optimization_methods import get_optimization_method
 from utils.plots import (
     plot_confusion_matrix,
     visualize_first_layer_filters,
@@ -19,25 +19,6 @@ from utils.plots import (
     plot_errors_per_epoch,
 )
 from utils.save import save_errors_per_epoch, save_predictions
-
-
-def get_batch_size(config, dataset_size) -> int:
-    training_strategy = config["training_strategy"]
-
-    if training_strategy == "batch":
-        return dataset_size
-    elif training_strategy == "mini_batch":
-        batch_size = config["batch_size"]
-
-        if batch_size > dataset_size:
-            raise Exception("Batch size is bigger than dataset size")
-
-        return batch_size
-    elif training_strategy == "online":
-        return 1
-    else:
-        raise Exception("Training strategy not found")
-
 
 def main():
     start_time = time.time()
@@ -48,39 +29,37 @@ def main():
 
         print("Loading dataset")
 
-        img_size = config["image_size"]
-
-        training_data, training_labels, test_data, test_labels = load_dataset(img_size)
+        training_data, training_labels, test_data, test_labels = load_dataset()
 
         data_shape = np.array([training_data[0]]).shape
 
-        batch_size = get_batch_size(config, len(training_data))
         epochs = config["epochs"]
-        delta = config["delta"]
-        activation_function = get_act_func(config)
+        activation_function = get_act_func(config["fully_connected_activation"])
 
         cnn = CNN(
             [
-                Convolutional(5, 3, Adam(delta)),
+                Pooling(),
+                Pooling(),
+                Convolutional(5, 3, get_optimization_method(config["optimizer"])),
                 Relu(),
                 Pooling(),
-                Convolutional(3, 3, Adam(delta)),
+                Convolutional(3, 3, get_optimization_method(config["optimizer"])),
                 Relu(),
                 Pooling(),
                 Flatten(),
-                FullyConnected(100, activation_function, Adam(delta)),
                 FullyConnected(
-                    1,
+                    100,
                     activation_function,
-                    Adam(delta),
+                    get_optimization_method(config["optimizer"]),
                 ),
+                FullyConnected(1, activation_function, get_optimization_method(config["optimizer"])),
             ],
             data_shape,
         )
 
     print("Starting training")
 
-    loss_per_epoch = cnn.train(training_data, training_labels, epochs, batch_size)
+    loss_per_epoch = cnn.train(training_data, training_labels, epochs)
 
     plot_errors_per_epoch(loss_per_epoch)
     save_errors_per_epoch(loss_per_epoch)

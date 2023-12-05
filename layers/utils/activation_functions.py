@@ -57,12 +57,14 @@ class Tanh(ActivationFunction):
 
 
 def get_act_func(config):
-    act_func = config["activation_function"]
+    act_func = config["type"]
+    beta = config["beta"]
+
     if act_func == "relu":
         return ReLU()
     elif act_func == "sigmoid":
-        return Sigmoid()
+        return Sigmoid(beta)
     elif act_func == "tanh":
-        return Tanh()
+        return Tanh(beta)
     else:
         raise Exception("Activation function not found")

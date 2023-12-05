@@ -1,8 +1,14 @@
 {
-  "image_size": 200,
-  "training_strategy": "batch",
-  "batch_size": 50,
   "epochs": 10,
-  "delta": 0.001,
-  "activation_function": "sigmoid"
+  "fully_connected_activation": {
+    "type": "sigmoid",
+    "beta": 1.0
+  },
+  "optimizer": {
+    "type": "adam",
+    "eta": 0.001,
+    "beta1": 0.9,
+    "beta2": 0.999,
+    "epsilon": 1e-08
+  }
 }

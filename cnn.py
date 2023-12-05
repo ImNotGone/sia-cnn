@@ -55,7 +55,7 @@ class CNN:
             excerpt = slice(start_idx, end_idx)
             yield data[excerpt], labels[excerpt]
 
-    def train(self, data: ndarray, labels: ndarray, epochs: int, batch_size: int):
+    def train(self, data: ndarray, labels: ndarray, epochs: int):
         loss_per_epoch = []
         best_loss = np.inf
         best_model = None
@@ -65,23 +65,21 @@ class CNN:
 
             print(f"Starting epoch {epoch + 1}")
 
-            for batch_data, batch_labels in self.iterate_mini_batches(
-                data, labels, batch_size
+
+            for i, sample, label in zip(
+                range(len(data)), data, labels
             ):
-                for i, sample, label in zip(
-                    range(len(batch_data)), batch_data, batch_labels
-                ):
-                    sample = np.array([sample])
-                    output = self.forward_prop(sample)
+                sample = np.array([sample])
+                output = self.forward_prop(sample)
 
-                    loss = self.cross_entropy_loss(output, label)
-                    losses.append(loss)
+                loss = self.cross_entropy_loss(output, label)
+                losses.append(loss)
 
-                    print(f"{i + 1}/{len(batch_data)}", end="\r")
+                print(f"{i + 1}/{len(data)}", end="\r")
 
-                    # Para backprop
-                    loss_gradient = self.cross_entropy_loss_gradient(output, label)
-                    self.back_prop(loss_gradient)
+                # Para backprop
+                loss_gradient = self.cross_entropy_loss_gradient(output, label)
+                self.back_prop(loss_gradient)
 
             loss = np.mean(losses)
             loss_per_epoch.append(loss)
