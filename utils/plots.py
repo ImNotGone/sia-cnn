@@ -43,9 +43,10 @@ def visualize_feature_maps(cnn, data, label=""):
 
 
 def plot_errors_per_architecture(
-    errors_per_architecture: dict[str, tuple[float, float]]
+    errors_per_architecture: dict[str, tuple[float, float]],
+    path="errors_per_architecture.png",
 ):
-    print(errors_per_architecture.values())
+    names = list(errors_per_architecture.keys())
     means = [error[0] for error in errors_per_architecture.values()]
     stds = [error[1] for error in errors_per_architecture.values()]
 
@@ -56,19 +57,31 @@ def plot_errors_per_architecture(
         capsize=5,
     )
 
-    names = list(errors_per_architecture.keys())
 
     plt.xticks(
         [i + 1 for i in range(len(errors_per_architecture))],
         names,
+        rotation=45,  # Rotate x-tick labels by 45 degrees
+        ha='right',  # Align rotated labels to the right
+        fontsize=8,  # Adjust font size
     )
 
     plt.xlabel("Architecture")
     plt.ylabel("Error")
 
+    # Do not show negative values on y ticks
+    max_ytick = max(means) + max(stds)
+    plt.yticks(np.arange(0, max_ytick + 0.1, 0.1))
+
     plt.title("Mean Error per architecture (10 iterations)")
 
-    plt.savefig(f"{plot_dir}/errors_per_architecture.png")
+    # Increase figure width for more space
+    fig = plt.gcf()
+    fig.set_size_inches(10, 5)
+
+    plt.tight_layout()  # Adjust layout to prevent clipping of labels
+
+    plt.savefig(f"{plot_dir}/{path}")
     plt.clf()
 
 def plot_errors_per_epoch(errors_per_epoch: list[float]):
