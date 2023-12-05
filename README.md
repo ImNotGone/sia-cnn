@@ -4,6 +4,7 @@ Un CNN en python con arquitectura modular
 ### Dependencias
 - `numpy`
 - `matplotlib`
+- `opencv`
 
 ### Ejecucion
 Para correr el programa principal
